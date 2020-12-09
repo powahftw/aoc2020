@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:aoc2020/aoc2020.dart' as aoc2020;
 
 void day6() async {
@@ -91,6 +93,94 @@ void day7() async {
   print('Part 1: {$sum2}');
 }
 
+void day8() async {
+  var input = await aoc2020.loadInput(8);
+  var prog = input.map((line) => line.split(' ')).toList();
+
+  int itCompletes(prog, zeroOnError) {
+    var acc = 0;
+    var idx = 0;
+    var visited = Set();
+    while (true) {
+      if (idx == prog.length) {
+        return acc;
+      }
+      if (visited.contains(idx)) {
+        if (zeroOnError) {
+          return 0;
+        } else {
+          return acc;
+        }
+      }
+      var sep = prog[idx];
+      var op = sep[0];
+      var val = int.parse(sep[1]);
+      visited.add(idx);
+      if (op == 'acc') {
+        acc += val;
+        idx += 1;
+      } else if (op == 'nop') {
+        idx += 1;
+      } else if (op == 'jmp') {
+        idx += val;
+      }
+    }
+  }
+
+  print('Part 1: ${itCompletes(prog, false)}');
+
+  for (var inst in prog) {
+    var p_inst = inst[0];
+    if (p_inst == 'jmp') {
+      inst[0] = 'nop';
+    } else if (p_inst == 'nop') {
+      inst[0] = 'jmp';
+    }
+    var res = itCompletes(prog, true);
+    if (res != 0) {
+      print('Part 2: ${res}');
+      break;
+    }
+    inst[0] = p_inst;
+  }
+}
+
+void day9() async {
+  final input =
+      (await aoc2020.loadInput(9)).map((s_num) => int.parse(s_num)).toList();
+  const PREVIOUS = 25;
+  var sum_to;
+  for (var idx = PREVIOUS; idx < input.length; idx++) {
+    sum_to = input[idx];
+    var can_i_make = false;
+    for (var sub_idx = idx - PREVIOUS; sub_idx < idx - 1; sub_idx++) {
+      for (var sub_idx_2 = sub_idx + 1; sub_idx_2 < idx; sub_idx_2++) {
+        if (input[sub_idx_2] + input[sub_idx] == sum_to) {
+          can_i_make = true;
+        }
+      }
+    }
+    if (!can_i_make) {
+      print('Part1: ${sum_to}');
+      break;
+    }
+  }
+  for (var idx = 0; idx < input.length - 1; idx++) {
+    var idx2 = idx + 1;
+    var sum_so_far = input[idx] + input[idx2];
+    while (idx2 < input.length && sum_so_far < sum_to) {
+      idx2 += 1;
+      sum_so_far += input[idx2];
+    }
+    if (sum_so_far == sum_to) {
+      var range = input.sublist(idx, idx2);
+      var res = range.reduce(min) + range.reduce(max);
+      print('Part2: ${res}');
+      break;
+    }
+  }
+}
+
 void main(List<String> arguments) async {
-  await day7();
+  await day9();
 }
