@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:quiver/iterables.dart' as quiver;
 
 import 'package:aoc2020/aoc2020.dart' as aoc2020;
 
@@ -181,6 +182,39 @@ void day9() async {
   }
 }
 
+void day10() async {
+  final input =
+      (await aoc2020.loadInput(10)).map((s_num) => int.parse(s_num)).toList();
+
+  final device_rating = input.reduce(max) + 3;
+  input.addAll([0, device_rating]);
+  input.sort((a, b) => a.compareTo(b));
+  var trimmedList = List<int>.from(input);
+  var shiftedList = List<int>.from(input);
+  shiftedList.remove(0);
+  trimmedList.removeLast();
+  var jumps =
+      quiver.zip([trimmedList, shiftedList]).map((x) => x[1] - x[0]).toList();
+  int count(l, n) {
+    return l.where((e) => e == n).toList().length;
+  }
+
+  var sol1 = count(jumps, 1) * count(jumps, 3);
+  print('Part 1: ${sol1}');
+
+  var ways = List.filled(input.length, 0);
+  ways[0] = 1;
+  for (var i = 0; i < input.length - 1; i++) {
+    for (var j = i + 1; j < input.length; j++) {
+      if ((input[j] - input[i]) > 3) {
+        break;
+      }
+      ways[j] += ways[i];
+    }
+  }
+  print('Part 2: ${ways.reduce(max)}');
+}
+
 void main(List<String> arguments) async {
-  await day9();
+  await day10();
 }
