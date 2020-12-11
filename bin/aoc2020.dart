@@ -215,6 +215,96 @@ void day10() async {
   print('Part 2: ${ways.reduce(max)}');
 }
 
+void day11() async {
+  final input =
+      (await aoc2020.loadInput(11)).map((line) => line.split('')).toList();
+  var max_r = input.length;
+  var max_c = input[0].length;
+  const dirs = [
+    [0, 1],
+    [1, 0],
+    [1, 1],
+    [-1, 0],
+    [0, -1],
+    [-1, -1],
+    [1, -1],
+    [-1, 1]
+  ];
+  int get_nearby(List<List<String>> inp, int r, int c) {
+    var res = 0;
+    for (var d in dirs) {
+      var dx = d[0];
+      var dy = d[1];
+      var x = c + dx;
+      var y = r + dy;
+      if (x < 0 || x >= max_c) {
+        continue;
+      }
+      if (y < 0 || y >= max_r) {
+        continue;
+      }
+      res += (inp[y][x] == '#') ? 1 : 0;
+    }
+    return res;
+  }
+
+  int get_visible(List<List<String>> inp, int r, int c) {
+    var occ = 0;
+    for (var d in dirs) {
+      var dx = d[0];
+      var dy = d[1];
+      var new_r = r + dy;
+      var new_c = c + dx;
+      while (new_r >= 0 && new_r < max_r && new_c >= 0 && new_c < max_c) {
+        if (inp[new_r][new_c] == '#') {
+          occ += 1;
+          break;
+        } else if (inp[new_r][new_c] == 'L') {
+          break;
+        }
+        new_r += dy;
+        new_c += dx;
+      }
+    }
+    return occ;
+  }
+
+  void solve(int part) {
+    var changed = true;
+    var prev_state = input;
+    while (changed) {
+      changed = false;
+      var new_state = List.generate(max_r, (_) => List<String>(max_c));
+      for (var idx_r = 0; idx_r < max_r; idx_r++) {
+        for (var idx_c = 0; idx_c < max_c; idx_c++) {
+          var prev_cell = prev_state[idx_r][idx_c];
+          var occupied_nearby = (part == 1)
+              ? get_nearby(prev_state, idx_r, idx_c)
+              : get_visible(prev_state, idx_r, idx_c);
+          var too_crowded = (part == 1) ? 3 : 4;
+          if (prev_cell == 'L' && occupied_nearby == 0) {
+            new_state[idx_r][idx_c] = '#';
+            changed = true;
+          } else if (prev_cell == '#' && occupied_nearby > too_crowded) {
+            new_state[idx_r][idx_c] = 'L';
+            changed = true;
+          } else {
+            new_state[idx_r][idx_c] = prev_state[idx_r][idx_c];
+          }
+        }
+      }
+      prev_state = new_state;
+    }
+    var count_occupied = prev_state
+        .map((line) => line.where((e) => e == '#').length)
+        .reduce((a, b) => a + b);
+    print('Part ${part}: ${count_occupied}');
+  }
+
+  solve(1);
+  solve(2);
+}
+
 void main(List<String> arguments) async {
-  await day10();
+  await day11();
 }
