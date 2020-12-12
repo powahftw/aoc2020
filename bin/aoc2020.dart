@@ -305,6 +305,81 @@ void day11() async {
   solve(2);
 }
 
+void day12() async {
+  final input = await aoc2020.loadInput(12);
+  var dirs = ['E', 'S', 'W', 'N'];
+  var movs = {
+    'E': [1, 0],
+    'S': [0, -1],
+    'W': [-1, 0],
+    'N': [0, 1],
+  };
+  var dir = 0;
+  var x = 0;
+  var y = 0;
+  for (var line in input) {
+    var inst = line[0];
+    var value = int.parse(line.substring(1));
+    switch (inst) {
+      case 'E':
+      case 'S':
+      case 'W':
+      case 'N':
+        var move = movs[inst];
+        x += (move[0] * value);
+        y += (move[1] * value);
+        break;
+      case 'L':
+      case 'R':
+        var turn_by = value ~/ 90;
+        dir += ((inst == 'R') ? turn_by : -turn_by);
+        dir %= 4;
+        break;
+      case 'F':
+        var move = movs[dirs[dir]];
+        x += (move[0] * value);
+        y += (move[1] * value);
+        break;
+    }
+  }
+  var manhattan_distance_1 = x.abs() + y.abs();
+  print('Part 1: ${manhattan_distance_1}');
+  x = 0;
+  y = 0;
+  var w_x = 10;
+  var w_y = 1;
+  for (var line in input) {
+    var inst = line[0];
+    var value = int.parse(line.substring(1));
+    switch (inst) {
+      case 'E':
+      case 'S':
+      case 'W':
+      case 'N':
+        var move = movs[inst];
+        w_x += (move[0] * value);
+        w_y += (move[1] * value);
+        break;
+      case 'L':
+      case 'R':
+        var d_value = value * pi / 180;
+        if (inst == 'R') {
+          d_value = -d_value;
+        }
+        var old_x = w_x;
+        w_x = cos(d_value).round() * w_x - sin(d_value).round() * w_y;
+        w_y = sin(d_value).round() * old_x + cos(d_value).round() * w_y;
+        break;
+      case 'F':
+        x += (w_x * value);
+        y += (w_y * value);
+        break;
+    }
+  }
+  var manhattan_distance_2 = x.abs() + y.abs();
+  print('Part 1: ${manhattan_distance_2}');
+}
+
 void main(List<String> arguments) async {
-  await day11();
+  await day12();
 }
