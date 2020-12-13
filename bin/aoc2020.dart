@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:quiver/iterables.dart' as quiver;
+import 'package:dart_numerics/dart_numerics.dart' as numerics;
 
 import 'package:aoc2020/aoc2020.dart' as aoc2020;
 
@@ -377,9 +378,45 @@ void day12() async {
     }
   }
   var manhattan_distance_2 = x.abs() + y.abs();
-  print('Part 1: ${manhattan_distance_2}');
+  print('Part 2: ${manhattan_distance_2}');
+}
+
+void day13() async {
+  final input = await aoc2020.loadInput(13);
+  final earliest_ts = int.parse(input[0]);
+  final busses = input[1]
+      .split(',')
+      .where((bus) => bus != 'x')
+      .map((bus) => int.parse(bus));
+  final res = busses
+      .map((time) => [((earliest_ts / time).ceil() * time) - earliest_ts, time])
+      .reduce((curr, next) => curr[0] < next[0] ? curr : next);
+  print('Part 1: ${res[0] * res[1]}');
+  final idx_and_busses = input[1]
+      .split(',')
+      .asMap()
+      .entries
+      .map((val) => [val.key, val.value])
+      .where((bus) => bus[1] != 'x')
+      .map((bus) => [bus[0], int.parse(bus[1])]);
+  var t = 0;
+  var increment = busses.toList()[0];
+  idx_and_busses.forEach((idx_and_bus) {
+    var idx = idx_and_bus[0];
+    var bus_id = idx_and_bus[1];
+    var loop = true;
+    while (loop) {
+      t += increment;
+      if ((t + idx) % bus_id == 0) {
+        loop = false;
+      }
+    }
+    increment = numerics.leastCommonMultiple(increment, bus_id);
+  });
+
+  print('Part 2: ${t}');
 }
 
 void main(List<String> arguments) async {
-  await day12();
+  await day13();
 }
