@@ -417,6 +417,68 @@ void day13() async {
   print('Part 2: ${t}');
 }
 
+void day14() async {
+  String replaceCharAt(String oldString, int index, String newChar) {
+    return oldString.substring(0, index) +
+        newChar +
+        oldString.substring(index + 1);
+  }
+
+  final input = await aoc2020.loadInput(14);
+  var mem1 = {};
+  var mem2 = {};
+  var curr_mask = '';
+  for (var line in input) {
+    if (line.startsWith('mask')) {
+      curr_mask = line.split('=')[1];
+    } else {
+      var matches =
+          RegExp(r'mem[\[](\d+)[\]]\s=\s(\d+)').allMatches(line).elementAt(0);
+      var idx = BigInt.parse(matches.group(1));
+      var val = BigInt.parse(matches.group(2));
+
+      // Part 1.
+      var or_mask = BigInt.parse(curr_mask.replaceAll('X', '0'), radix: 2);
+      var and_mask = BigInt.parse(curr_mask.replaceAll('X', '1'), radix: 2);
+      mem1[idx] = (val & and_mask) | or_mask;
+
+      // Part 2.
+
+      var idxs_of_xs = quiver
+          .enumerate(curr_mask.split(''))
+          .where((idx_val) => idx_val.value == 'X')
+          .map((idx_val) => idx_val.index)
+          .toList();
+
+      var merge_mask =
+          (BigInt.parse(curr_mask.replaceAll('X', '0'), radix: 2) | idx)
+              .toRadixString(2)
+              .padLeft(curr_mask.length, '0');
+      var possible_masks = [merge_mask];
+
+      for (var i = 0; i < idxs_of_xs.length; i++) {
+        var new_possible_masks = <String>[];
+        for (var possible_mask in possible_masks) {
+          new_possible_masks
+              .add(replaceCharAt(possible_mask, idxs_of_xs[i], '1'));
+          new_possible_masks
+              .add(replaceCharAt(possible_mask, idxs_of_xs[i], '0'));
+        }
+        possible_masks = new_possible_masks;
+      }
+      for (var possible_mask in possible_masks) {
+        var idx_to_use = BigInt.parse(possible_mask, radix: 2);
+        mem2[idx_to_use] = val;
+      }
+    }
+  }
+  var sum1 = mem1.values.reduce((a, b) => a + b);
+  var sum2 = mem2.values.reduce((a, b) => a + b);
+
+  print('Part 1: ${sum1}');
+  print('Part 1: ${sum2}');
+}
+
 void main(List<String> arguments) async {
-  await day13();
+  await day14();
 }
