@@ -479,6 +479,40 @@ void day14() async {
   print('Part 1: ${sum2}');
 }
 
+void day15() async {
+  final input = (await aoc2020.loadInput(15))
+      .expand((line) => line.split(','))
+      .map((n) => int.parse(n))
+      .toList();
+
+  void solve(int part) {
+    final UP_TO = part == 1 ? 2020 : 30000000;
+    var last_spoken = 0;
+    var spoken_at = {};
+    for (var idx = 0; idx < UP_TO; idx++) {
+      if (idx < input.length) {
+        last_spoken = input[idx];
+        spoken_at[last_spoken] = [idx];
+      } else {
+        if (spoken_at.containsKey(last_spoken)) {
+          var val = spoken_at[last_spoken];
+          if (val.length > 1) {
+            last_spoken = val[val.length - 1] - val[val.length - 2];
+            spoken_at.putIfAbsent(last_spoken, () => []).add(idx);
+          } else {
+            last_spoken = 0;
+            spoken_at[0].add(idx);
+          }
+        }
+      }
+    }
+    print('Part ${part}: ${last_spoken}');
+  }
+
+  solve(1);
+  solve(2);
+}
+
 void main(List<String> arguments) async {
-  await day14();
+  await day15();
 }
