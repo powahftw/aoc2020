@@ -4,6 +4,234 @@ import 'package:dart_numerics/dart_numerics.dart' as numerics;
 
 import 'package:aoc2020/aoc2020.dart' as aoc2020;
 
+void day1() async {
+  final input = (await aoc2020.loadInput(1)).map(int.parse).toList();
+  const should_sum_to = 2020;
+  final seen = <int>{};
+  input.forEach((number) {
+    if (seen.contains(should_sum_to - number)) {
+      print('Part 1: ${number * (should_sum_to - number)}');
+    }
+    seen.add(number);
+  });
+
+  for (var i = 0; i < input.length - 2; i++) {
+    for (var j = i + 1; j < input.length - 1; j++) {
+      final partial_sum = input[i] + input[j];
+      if (seen.contains(should_sum_to - partial_sum)) {
+        print('Part 2: ${input[i] * input[j] * (should_sum_to - partial_sum)}');
+        return;
+      }
+    }
+  }
+}
+
+void day2() async {
+  final input = (await aoc2020.loadInput(2));
+  var valid_passwords_p1 = 0;
+  var valid_passwords_p2 = 0;
+  input.forEach((line) {
+    final s_line = line.split(' ');
+    final range = s_line[0].split('-');
+    final min = int.parse(range[0]);
+    final max = int.parse(range[1]);
+    final letter = s_line[1][0];
+    final password = s_line[2];
+    if (min <= letter.allMatches(password).length &&
+        letter.allMatches(password).length <= max) {
+      valid_passwords_p1 += 1;
+    }
+    ;
+    if ((password[min - 1] == letter) ^ (password[max - 1] == letter)) {
+      valid_passwords_p2 += 1;
+    }
+  });
+  print('Part 1: ${valid_passwords_p1}');
+  print('Part 1: ${valid_passwords_p2}');
+}
+
+int tree_encountered(input, slope_x, slope_y) {
+  var tree_seen = 0;
+  var x = 0;
+  var max_x = input[0].length;
+  for (var y = slope_y; y < input.length; y += slope_y) {
+    x = (x + slope_x) % max_x;
+    if (input[y][x] == '#') {
+      tree_seen += 1;
+    }
+  }
+  return tree_seen;
+}
+
+void day3() async {
+  final input = await aoc2020.loadInput(3);
+  final part1 = tree_encountered(input, 3, 1);
+  print('Part 1: ${part1}');
+  final slopes = [
+    [1, 1],
+    [3, 1],
+    [5, 1],
+    [7, 1],
+    [1, 2]
+  ];
+  var res2 = 1;
+  for (var slope in slopes) {
+    res2 *= tree_encountered(input, slope[0], slope[1]);
+  }
+  print('Part 2: ${res2}');
+}
+
+bool has_passport_all_fields(tokens) {
+  var required_fields = {'byr', 'iyr', 'eyr', 'hgt', 'hcl', 'ecl', 'pid'};
+  for (var token in tokens.map((token) => token.split(':')[0])) {
+    if (required_fields.contains(token)) {
+      required_fields.remove(token);
+    }
+  }
+  return required_fields.isEmpty;
+}
+
+bool are_present_fields_valid(tokens) {
+  for (var token in tokens.map((token) => token.split(':'))) {
+    var field = token[0];
+    var value = token[1];
+    switch (field) {
+      case 'byr':
+        if (!(value.length == 4 &&
+            int.parse(value) < 2003 &&
+            int.parse(value) > 1919)) {
+          return false;
+        }
+        break;
+      case 'iyr':
+        if (!(value.length == 4 &&
+            int.parse(value) < 2021 &&
+            int.parse(value) > 2009)) {
+          return false;
+        }
+        break;
+      case 'eyr':
+        if (!(value.length == 4 &&
+            int.parse(value) < 2031 &&
+            int.parse(value) > 2019)) {
+          return false;
+        }
+        break;
+      case 'hgt':
+        var dim = value.substring(value.length - 2);
+        if (int.tryParse(value.substring(0, value.length - 2)) == null) {
+          return false;
+        }
+        var num_value = int.parse(value.substring(0, value.length - 2));
+        if (!((dim == 'cm') || (dim == 'in'))) {
+          return false;
+        }
+        if (((dim == 'cm') && (num_value > 193 || num_value < 150))) {
+          return false;
+        }
+        if (((dim == 'in') && (num_value < 59 || num_value > 76))) {
+          return false;
+        }
+        break;
+      case 'hcl':
+        var exp = RegExp(r'#[a-f|\d]{6}');
+        if (!(exp.hasMatch(value))) {
+          return false;
+        }
+        break;
+      case 'ecl':
+        if (!{'amb', 'blu', 'brn', 'gry', 'grn', 'hzl', 'oth'}
+            .contains(value)) {
+          return false;
+        }
+        break;
+      case 'pid':
+        if (!(value.length == 9 && (value) != null)) {
+          return false;
+        }
+        break;
+    }
+  }
+  return true;
+}
+
+List<String> separate_line_in_tokens(String line) {
+  return line.split(' ').toList();
+}
+
+void day4() async {
+  final input = await aoc2020.loadInput(4);
+  var valid_passports_1 = 0;
+  var valid_passports_2 = 0;
+  var current_passport_tokens = [];
+  for (var line in input) {
+    if (line.isEmpty) {
+      final all_fields_present =
+          has_passport_all_fields(current_passport_tokens);
+      valid_passports_1 += all_fields_present ? 1 : 0;
+      valid_passports_2 += (all_fields_present &&
+              are_present_fields_valid(current_passport_tokens))
+          ? 1
+          : 0;
+      current_passport_tokens = [];
+    } else {
+      current_passport_tokens.addAll(separate_line_in_tokens(line));
+    }
+  }
+  final all_fields_present = has_passport_all_fields(current_passport_tokens);
+  valid_passports_1 += all_fields_present ? 1 : 0;
+  valid_passports_2 +=
+      (all_fields_present && are_present_fields_valid(current_passport_tokens))
+          ? 1
+          : 0;
+  print('Part 1: ${valid_passports_1}');
+  print('Part 2: ${valid_passports_2}');
+}
+
+int calculate_seat_id(String bsp) {
+  final rows_part = bsp.substring(0, 7);
+  final column_part = bsp.substring(bsp.length - 3);
+  var l = 0, r = 127;
+  for (var i = 0; i < rows_part.length; i++) {
+    var middle = (r - l + 1) ~/ 2;
+    if (rows_part[i] == 'F') {
+      r -= middle;
+    } else {
+      l += middle;
+    }
+  }
+  var row = l;
+  l = 0;
+  r = 7;
+  for (var i = 0; i < column_part.length; i++) {
+    var middle = (r - l + 1) ~/ 2;
+    if (column_part[i] == 'L') {
+      r -= middle;
+    } else {
+      l += middle;
+    }
+  }
+  var column = l;
+  return row * 8 + column;
+}
+
+void day5() async {
+  final input = await aoc2020.loadInput(5);
+  final seat_ids = input.map((line) => calculate_seat_id(line));
+  final min_id = seat_ids.reduce(min);
+  final max_id = seat_ids.reduce(max);
+  final seen = seat_ids.toSet();
+  var missing;
+  for (var i = min_id; i < max_id; i++) {
+    if (!(seen.contains(i))) {
+      missing = i;
+      break;
+    }
+  }
+  print('Part 1: ${max_id}');
+  print('Part 2: ${missing}');
+}
+
 void day6() async {
   var input = await aoc2020.loadInput(6);
   var sum_counts_1 = 0, sum_counts_2 = 0;
@@ -514,5 +742,5 @@ void day15() async {
 }
 
 void main(List<String> arguments) async {
-  await day15();
+  await day8();
 }
