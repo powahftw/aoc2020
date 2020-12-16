@@ -741,6 +741,97 @@ void day15() async {
   solve(2);
 }
 
+void day16() async {
+  final input = await aoc2020.loadInput(16);
+  var section = 0;
+  var error_rate = 0;
+  var rules = {};
+  var your_ticket = [];
+  var valid_tickets = [];
+  for (var line in input) {
+    if (line.isEmpty) {
+      section += 1;
+      continue;
+    }
+    if (line.contains('your ticket') || line.contains('nearby tickets')) {
+      continue;
+    }
+    if (section == 0) {
+      var matches = RegExp(r'(.+):\s(\d+)-(\d+)\sor\s(\d+)-(\d+)')
+          .allMatches(line)
+          .elementAt(0);
+      var field_name = matches.group(1);
+      rules[field_name] = [
+        int.parse(matches.group(2)),
+        int.parse(matches.group(3)),
+        int.parse(matches.group(4)),
+        int.parse(matches.group(5))
+      ];
+    }
+    if (section == 1) {
+      your_ticket = line.split(',').map((val) => int.parse(val)).toList();
+      continue;
+    }
+    if (section == 2) {
+      bool isValid(int n) {
+        return rules.values
+            .where((val) =>
+                (n >= val[0] && n <= val[1]) || (n >= val[2] && n <= val[3]))
+            .isNotEmpty;
+      }
+
+      var values = line.split(',').map((val) => int.parse(val));
+      var is_error_present = values.any((n) => !isValid(n));
+
+      if (is_error_present) {
+        error_rate += values.where((n) => !isValid(n)).fold(0, (a, b) => a + b);
+      } else {
+        valid_tickets.add(values.toList());
+      }
+    }
+  }
+  print('Part 1: ${error_rate}');
+
+  var found_rules = List(your_ticket.length);
+  for (var c_idx = 0; c_idx < valid_tickets[0].length; c_idx++) {
+    var valid_rules = [];
+    var need_to_satisfy = valid_tickets.map((values) => values[c_idx]);
+    for (var rule in rules.keys) {
+      var rule_range = rules[rule];
+      var all_satisfy = need_to_satisfy.every((n) =>
+          ((n >= rule_range[0] && n <= rule_range[1]) ||
+              (n >= rule_range[2] && n <= rule_range[3])));
+      if (all_satisfy) {
+        valid_rules.add(rule);
+      }
+    }
+    found_rules[c_idx] = valid_rules;
+  }
+
+  var all_found = false;
+  var matched_rules = <dynamic>{};
+  while (!all_found) {
+    for (var i = 0; i < found_rules.length; i++) {
+      if (found_rules[i].length == 1) {
+        matched_rules.add(found_rules[i][0]);
+      } else {
+        found_rules[i] =
+            found_rules[i].where((el) => !matched_rules.contains(el)).toList();
+      }
+    }
+    all_found = found_rules.every((el) => el.length == 1);
+  }
+
+  var mul = 1;
+  for (var idx = 0; idx < found_rules.length; idx++) {
+    if (found_rules[idx][0].startsWith('departure')) {
+      mul *= your_ticket[idx];
+    }
+  }
+  // ignore: prefer_single_quotes
+  print("Part 2: ${mul}");
+}
+
 void main(List<String> arguments) async {
-  await day8();
+  await day16();
 }
