@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:quiver/iterables.dart' as quiver;
 import 'package:dart_numerics/dart_numerics.dart' as numerics;
+import 'package:trotter/trotter.dart' as trotter;
 
 import 'package:aoc2020/aoc2020.dart' as aoc2020;
 
@@ -828,10 +829,144 @@ void day16() async {
       mul *= your_ticket[idx];
     }
   }
-  // ignore: prefer_single_quotes
-  print("Part 2: ${mul}");
+
+  print('Part 2: ${mul}');
+}
+
+void day17() async {
+  final DIRS3D = trotter.Amalgams(3, [-1, 0, 1])();
+  final DIRS4D = trotter.Amalgams(4, [-1, 0, 1])();
+
+  List<List<List<String>>> generate3DList(int size) {
+    return List.generate(size,
+        (_) => List.generate(size, (_) => List.generate(size, (_) => '.')));
+  }
+
+  List<List<List<List<String>>>> generate4DList(int size) {
+    return List.generate(size, (_) => generate3DList(size));
+  }
+
+  int getActiveNeighbours3D(List<List<List<String>>> l, int z, int y, int x) {
+    var sum = 0;
+    for (var dir in DIRS3D) {
+      var dz = dir[0];
+      var dy = dir[1];
+      var dx = dir[2];
+      if (dz == 0 && dy == 0 && dx == 0) {
+        // Skip the cell itself.
+        continue;
+      }
+      try {
+        if (l[z + dz][y + dy][x + dx] == '#') {
+          sum += 1;
+        }
+      } on RangeError {
+        continue;
+      }
+    }
+    return sum;
+  }
+
+  int getActiveNeighbours4D(
+      List<List<List<List<String>>>> l, int k, int z, int y, int x) {
+    var sum = 0;
+    for (var dir in DIRS4D) {
+      var dk = dir[0];
+      var dz = dir[1];
+      var dy = dir[2];
+      var dx = dir[3];
+      if (dk == 0 && dz == 0 && dy == 0 && dx == 0) {
+        // Skip the cell itself.
+        continue;
+      }
+      try {
+        if (l[k + dk][z + dz][y + dy][x + dx] == '#') {
+          sum += 1;
+        }
+      } on RangeError {
+        continue;
+      }
+    }
+    return sum;
+  }
+
+  final input = await aoc2020.loadInput(17);
+  const SIMULATE_SIZE = 20;
+  const middle = SIMULATE_SIZE ~/ 2;
+  const SIMULATE_STEP = 6;
+  var state3d = generate3DList(SIMULATE_SIZE);
+  var state4d = generate4DList(SIMULATE_SIZE);
+  var rows = input.length;
+  var cols = input[0].length;
+  for (var idx_r = 0; idx_r < rows; idx_r++) {
+    for (var idx_c = 0; idx_c < cols; idx_c++) {
+      var y = middle - (rows ~/ 2) + idx_r;
+      var x = middle - (cols ~/ 2) + idx_c;
+      var z = middle;
+      var k = middle;
+      state3d[z][y][x] = input[idx_r][idx_c];
+      state4d[k][z][y][x] = input[idx_r][idx_c];
+    }
+  }
+
+  for (var t = 0; t < SIMULATE_STEP; t++) {
+    var new_state3d = generate3DList(SIMULATE_SIZE);
+    for (var z = 0; z < SIMULATE_SIZE; z++) {
+      for (var y = 0; y < SIMULATE_SIZE; y++) {
+        for (var x = 0; x < SIMULATE_SIZE; x++) {
+          var is_cell_active = state3d[z][y][x] == '#';
+          var active_neighbours = getActiveNeighbours3D(state3d, z, y, x);
+          if (active_neighbours == 3 ||
+              (is_cell_active && (active_neighbours == 2))) {
+            new_state3d[z][y][x] = '#';
+          } else {
+            new_state3d[z][y][x] = '.';
+          }
+        }
+      }
+    }
+    state3d = new_state3d;
+  }
+
+  for (var t = 0; t < SIMULATE_STEP; t++) {
+    var new_state4d = generate4DList(SIMULATE_SIZE);
+    for (var k = 0; k < SIMULATE_SIZE; k++) {
+      for (var z = 0; z < SIMULATE_SIZE; z++) {
+        for (var y = 0; y < SIMULATE_SIZE; y++) {
+          for (var x = 0; x < SIMULATE_SIZE; x++) {
+            var is_cell_active = state4d[k][z][y][x] == '#';
+            var active_neighbours = getActiveNeighbours4D(state4d, k, z, y, x);
+            if (active_neighbours == 3 ||
+                (is_cell_active && (active_neighbours == 2))) {
+              new_state4d[k][z][y][x] = '#';
+            } else {
+              new_state4d[k][z][y][x] = '.';
+            }
+          }
+        }
+      }
+    }
+    state4d = new_state4d;
+  }
+  var active_cnt_3d = 0;
+  for (var t_state in state3d) {
+    for (var row in t_state) {
+      active_cnt_3d += row.where((cell) => cell == '#').length;
+    }
+  }
+  print('Part 1: ${active_cnt_3d}');
+
+  var active_cnt_4d = 0;
+  for (var t_state in state4d) {
+    for (var dim in t_state) {
+      for (var row in dim) {
+        active_cnt_4d += row.where((cell) => cell == '#').length;
+      }
+    }
+  }
+  print('Part 2: ${active_cnt_4d}');
 }
 
 void main(List<String> arguments) async {
-  await day16();
+  await day17();
 }
