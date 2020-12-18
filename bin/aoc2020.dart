@@ -967,6 +967,52 @@ void day17() async {
   print('Part 2: ${active_cnt_4d}');
 }
 
+int parseNext(List<String> l, int part) {
+  var el = l.removeLast();
+  if (int.tryParse(el) != null) {
+    return int.parse(el);
+  } else if (el == '(') {
+    var val = calc(l, part);
+    l.removeLast(); // Remove ')'
+    return val;
+  }
+}
+
+int calc(List<String> l, int part) {
+  var val = parseNext(l, part);
+  while (l.isNotEmpty && l.last != ')') {
+    var el = l.removeLast();
+    switch (el) {
+      case '*':
+        if (part == 1) {
+          val *= parseNext(l, part);
+        } else {
+          val *= calc(l, part);
+        }
+        break;
+      case '+':
+        val += parseNext(l, part);
+        break;
+    }
+  }
+  return val;
+}
+
+void day18() async {
+  final input = await aoc2020.loadInput(18);
+  var sum1 = input
+      .map((line) =>
+          calc(line.split('').reversed.where((c) => c != ' ').toList(), 1))
+      .reduce((a, b) => a + b);
+  print('Part 1: ${sum1}');
+
+  var sum2 = input
+      .map((line) =>
+          calc(line.split('').reversed.where((c) => c != ' ').toList(), 2))
+      .reduce((a, b) => a + b);
+  print('Part 2: ${sum2}');
+}
+
 void main(List<String> arguments) async {
-  await day17();
+  await day18();
 }
