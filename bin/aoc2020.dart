@@ -1013,6 +1013,104 @@ void day18() async {
   print('Part 2: ${sum2}');
 }
 
+void day19() async {
+  final input = await aoc2020.loadInput(19);
+  var is_rules_part = true;
+  var rules = <int, dynamic>{};
+  var messages = [];
+  for (var line in input) {
+    if (line.isEmpty) {
+      is_rules_part = false;
+      continue;
+    }
+    if (is_rules_part) {
+      var split = line.split(':');
+      var n = int.parse(split[0]);
+      var sp = split[1].trim();
+      if (sp.contains('"')) {
+        rules[n] = RegExp(r'"(\D)"').allMatches(sp).elementAt(0).group(1);
+      } else if (sp.contains('|')) {
+        rules[n] = sp
+            .trim()
+            .split('|')
+            .map((p) => p.trim())
+            .map((p) => p.split(' ').map((v) => int.parse(v)))
+            .toList();
+      } else {
+        rules[n] = [sp]
+            .map((p) => p.split(' ').map((v) => int.parse(v.trim())))
+            .toList();
+      }
+    } else {
+      messages.add(line);
+    }
+  }
+  final ROOT_RULE = 0;
+  var cache = {};
+
+  String buildRegex(Map<int, dynamic> rules, int rule, int p) {
+    if (!(rules.containsKey(rule))) {
+      assert(false);
+    }
+    if (p == 2 && rule == 8) {
+      return '(${buildRegex(rules, 42, 1)}+)';
+    }
+    if (p == 2 && rule == 11) {
+      var part_reg = '(';
+      var a = buildRegex(rules, 42, 1);
+      var b = buildRegex(rules, 31, 1);
+      for (var i = 1; i < 10; i++) {
+        if (i > 1) {
+          part_reg += '|';
+        }
+        part_reg += '(';
+        for (var j = 0; j < i; j++) {
+          part_reg += a;
+        }
+        for (var j = 0; j < i; j++) {
+          part_reg += b;
+        }
+        part_reg += ')';
+      }
+      part_reg += ')';
+      return part_reg;
+    }
+    if (cache.containsKey(rule)) {
+      return cache[rule];
+    }
+    var val = rules[rule];
+    // Base
+    if (val is String) {
+      return val;
+    }
+    // List of list.
+    var reg = '(';
+    for (var idx = 0; idx < val.length; idx++) {
+      if (idx != 0) {
+        reg += '|';
+      }
+      for (var part in val[idx]) {
+        reg += buildRegex(rules, part, p);
+      }
+    }
+    cache[rule] = reg + ')';
+    return cache[rule];
+  }
+
+  cache = {};
+  var r1 = buildRegex(rules, ROOT_RULE, 1);
+  var regex1 = RegExp(r1);
+  print('Part 1: ${messages.where((m) => regex1.stringMatch(m) == m).length}');
+
+  cache = {};
+
+  var r2 = buildRegex(rules, ROOT_RULE, 2);
+  var regex2 = RegExp(r2);
+  print(regex2);
+  // Used Python. Dart Regexp seemed to be too slow. https://github.com/dart-lang/sdk/issues/9360
+  //print('Part 2: ${messages.where((m) => regex2.stringMatch(m) == m).length}');
+}
+
 void main(List<String> arguments) async {
-  await day18();
+  await day19();
 }
