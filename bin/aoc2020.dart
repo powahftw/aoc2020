@@ -1111,6 +1111,141 @@ void day19() async {
   //print('Part 2: ${messages.where((m) => regex2.stringMatch(m) == m).length}');
 }
 
+void day20() async {
+  int convToNum(String s) {
+    return int.parse(s.replaceAll('#', '1').replaceAll('.', '0'), radix: 2);
+  }
+
+  String rev(String s) {
+    return s.split('').reversed.join('');
+  }
+
+  List<String> convMap(List<String> l) {
+    var r = l.length;
+    var c = l[0].length;
+    var top = l[0];
+    var bottom = l[c - 1];
+    var side_l = '';
+    var side_r = '';
+    for (var idx = 0; idx < r; idx++) {
+      side_l += l[idx][0];
+      side_r += l[idx][c - 1];
+    }
+    return [top, bottom, side_l, side_r];
+  }
+
+  final input = await aoc2020.loadInput(20);
+  var puzzle = <String, List<String>>{};
+  var curr_id = '';
+  for (var line in input) {
+    if (line.isEmpty) {
+      continue;
+    }
+    if (line.startsWith('Tile')) {
+      curr_id = RegExp(r'\s(\d+):').allMatches(line).elementAt(0).group(1);
+      puzzle[curr_id] = [];
+    } else {
+      puzzle[curr_id].add(line);
+    }
+  }
+  var cnt = {};
+  var unique = {};
+  for (var tile in puzzle.keys) {
+    for (var n in convMap(puzzle[tile])) {
+      cnt.putIfAbsent(convToNum(n), () => []).add(tile);
+      cnt.putIfAbsent(convToNum(rev(n)), () => []).add(tile);
+    }
+  }
+  for (var key in cnt.keys) {
+    if (cnt[key].length == 1) {
+      var tile = cnt[key][0];
+      if (unique.containsKey(tile)) {
+        unique[tile] += 1;
+      } else {
+        unique[tile] = 1;
+      }
+    }
+  }
+  // All corner will have 4 unmatched edges.
+  var prod = 1;
+  var last_edge_id = '';
+  for (var key in unique.keys) {
+    if (unique[key] == 4) {
+      prod *= int.parse(key);
+      last_edge_id = key;
+    }
+  }
+
+  print('Part 1: ${prod}');
+
+  // Assumption, no multiple edges. Either they are single or they have only a pair.
+  // 12 x 12
+  // numpy
+}
+
+void day21() async {
+  final input = await aoc2020.loadInput(21);
+  var ing = Set();
+  var ing_cnt = {};
+  var alerg_to_ing = <String, Set>{};
+  for (var line in input) {
+    var parts = line.replaceAll('(', '').replaceAll(')', '').split('contains');
+    var ingredients = parts[0].trim().split(' ').toSet();
+    var alergens = parts[1].trim().split(',');
+
+    ing = ing.union(ingredients);
+    for (var ingredient in ingredients) {
+      if (ing_cnt.containsKey(ingredient)) {
+        ing_cnt[ingredient] += 1;
+      } else {
+        ing_cnt[ingredient] = 1;
+      }
+    }
+
+    for (var alergen in alergens) {
+      alergen = alergen.trim();
+      if (alerg_to_ing.containsKey(alergen)) {
+        alerg_to_ing[alergen] = alerg_to_ing[alergen].intersection(ingredients);
+      } else {
+        alerg_to_ing[alergen] = ingredients;
+      }
+    }
+  }
+
+  var all_alerg_candidate = alerg_to_ing.values.reduce((a, b) => a.union(b));
+  var tot = 0;
+  for (var ingredient in ing) {
+    if (!(all_alerg_candidate.contains(ingredient))) {
+      tot += ing_cnt[ingredient];
+    }
+  }
+  print('Part 1: ${tot}');
+
+  var found = {};
+  var all_found = false;
+  while (!all_found) {
+    all_found = true;
+    for (var alerg in alerg_to_ing.keys) {
+      if (alerg_to_ing[alerg].length == 1) {
+        var ing = alerg_to_ing[alerg].single;
+        found[ing] = alerg;
+      } else {
+        all_found = false;
+        alerg_to_ing[alerg] = alerg_to_ing[alerg]
+            .where((ing) => !found.keys.contains(ing))
+            .toSet();
+      }
+    }
+  }
+  var inv_found = found.map((k, v) => MapEntry(v, k));
+  var res = '';
+  for (var ing in inv_found.keys.toList()..sort()) {
+    res += ',${inv_found[ing]}';
+  }
+
+  print('Part 2: ${res.substring(1)}');
+}
+
 void main(List<String> arguments) async {
-  await day19();
+  await day21();
 }
