@@ -1246,6 +1246,90 @@ void day21() async {
   print('Part 2: ${res.substring(1)}');
 }
 
+void day22() async {
+  int calculateScore(List<dynamic> cards) {
+    var idx = 1;
+    var res = 0;
+    for (var val in cards.reversed) {
+      res += val * idx;
+      idx++;
+    }
+    return res;
+  }
+
+  final input = await aoc2020.loadInput(22);
+  var p = 1;
+  var p1card = [];
+  var p2card = [];
+  for (var line in input) {
+    if (line.contains('Player')) {
+      continue;
+    }
+    if (line.isEmpty) {
+      p = 2;
+      continue;
+    }
+    if (p == 1) {
+      p1card.add(int.parse(line));
+    } else {
+      p2card.add(int.parse(line));
+    }
+  }
+  // Game 1
+  var p1 = [...p1card];
+  var p2 = [...p2card];
+  while (p1.isNotEmpty && p2.isNotEmpty) {
+    var p1card = p1.removeAt(0);
+    var p2card = p2.removeAt(0);
+    if (p1card > p2card) {
+      p1.addAll([p1card, p2card]);
+    } else {
+      p2.addAll([p2card, p1card]);
+    }
+  }
+  var non_empty_pile = p1.isEmpty ? p2 : p1;
+
+  print('Part 1: ${calculateScore(non_empty_pile)}');
+  var last_winner_deck = [];
+
+  int recursiveCombat(cp1, cp2) {
+    var cache = Set();
+    while (cp1.isNotEmpty && cp2.isNotEmpty) {
+      var key = '${cp1.join(',')}-${cp2.join(',')}';
+      if (cache.contains(key)) {
+        return 1;
+      } else {
+        cache.add(key);
+      }
+
+      var p1card = cp1.removeAt(0);
+      var p2card = cp2.removeAt(0);
+
+      if (p1card <= cp1.length && p2card <= cp2.length) {
+        var winner =
+            recursiveCombat(cp1.sublist(0, p1card), cp2.sublist(0, p2card));
+        if (winner == 1) {
+          cp1.addAll([p1card, p2card]);
+        } else {
+          cp2.addAll([p2card, p1card]);
+        }
+      } else {
+        if (p1card > p2card) {
+          cp1.addAll([p1card, p2card]);
+        } else {
+          cp2.addAll([p2card, p1card]);
+        }
+      }
+    }
+    last_winner_deck = cp1.isEmpty ? cp2 : cp1;
+    return cp1.isEmpty ? 2 : 1;
+  }
+
+  // Game 2
+  recursiveCombat(p1card, p2card);
+  print('Part 2: ${calculateScore(last_winner_deck)}');
+}
+
 void main(List<String> arguments) async {
-  await day21();
+  await day22();
 }
