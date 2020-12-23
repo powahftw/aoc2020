@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'package:quiver/iterables.dart' as quiver;
 import 'package:dart_numerics/dart_numerics.dart' as numerics;
@@ -1330,6 +1331,89 @@ void day22() async {
   print('Part 2: ${calculateScore(last_winner_deck)}');
 }
 
+class Node {
+  int val;
+  Node next;
+
+  Node(this.val);
+}
+
+void day23() async {
+  String get_list(Node c, {int highlight = -1}) {
+    var until = c.val;
+    var res = '';
+    while (c.next.val != until) {
+      if (c.val == highlight) {
+        res += '(${c.val})';
+      } else {
+        res += '${c.val}';
+      }
+      c = c.next;
+    }
+    if (c.val == highlight) {
+      res += '(${c.val})';
+    } else {
+      res += '${c.val}';
+    }
+    return res;
+  }
+
+  final input = await aoc2020.loadInput(23);
+  var cups = input[0].split('').map((n) => int.parse(n)).toList();
+
+  Map<int, Node> solveCups(List<int> cups, int n_moves) {
+    var max_val = cups.reduce(max);
+    var min_val = cups.reduce(min);
+
+    var idx_node = <int, Node>{};
+    for (var idx = 1; idx < n_moves + 1; idx++) {
+      idx_node[idx] = Node(idx);
+    }
+
+    for (var idx = 0; idx < cups.length; idx++) {
+      idx_node[cups[idx]].next = idx_node[cups[(idx + 1) % cups.length]];
+    }
+    var curr = idx_node[cups[0]];
+    for (var step = 0; step < n_moves; step++) {
+      var curr_value = curr.val;
+
+      var move_cups = [curr.next, curr.next.next, curr.next.next.next];
+      var move_cups_val = move_cups.map((cup) => cup.val).toList();
+
+      // Remove the next 3 by pointing the next to the 4th.
+      curr.next = curr.next.next.next.next;
+
+      var candidate_next = curr_value - 1;
+      if (candidate_next < min_val) {
+        candidate_next = max_val;
+      }
+      while (move_cups_val.contains(candidate_next)) {
+        candidate_next -= 1;
+        if (candidate_next < min_val) {
+          candidate_next = max_val;
+        }
+      }
+
+      var next = idx_node[candidate_next];
+      var next_next = next.next;
+      next.next = move_cups[0];
+      move_cups[2].next = next_next;
+
+      curr = curr.next;
+    }
+    return idx_node;
+  }
+
+  var p1 = solveCups(cups, 100);
+  print('Part 1: ${get_list(p1[1])}');
+
+  var max_cup = cups.reduce(max);
+  cups = cups + List<int>.generate(1000000 - max_cup, (i) => i + max_cup + 1);
+
+  var p2 = solveCups(cups, 10000000);
+  print('Part 2: ${p2[1].next.val * p2[1].next.next.val}');
+}
+
 void main(List<String> arguments) async {
-  await day22();
+  await day23();
 }
