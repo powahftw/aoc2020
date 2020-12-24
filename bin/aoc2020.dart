@@ -1414,6 +1414,101 @@ void day23() async {
   print('Part 2: ${p2[1].next.val * p2[1].next.next.val}');
 }
 
+void day24() async {
+  var match_dir = RegExp(r'(e|se|sw|w|nw|ne)');
+  var blacks = Set();
+  var dirs_to_mov = {
+    'e': [1, 0, -1],
+    'se': [0, 1, -1],
+    'sw': [-1, 1, 0],
+    'w': [-1, 0, 1],
+    'nw': [0, -1, 1],
+    'ne': [1, -1, 0]
+  };
+  var SIZE = 180;
+  var OFFSET = SIZE ~/ 2;
+
+  List<List<List<int>>> generate3DList(int size) {
+    return List.generate(
+        size, (_) => List.generate(size, (_) => List.generate(size, (_) => 0)));
+  }
+
+  int getActiveNeighboursHex(List<List<List<int>>> l, int w, int k, int q) {
+    var sum = 0;
+    for (var dir in dirs_to_mov.values) {
+      var dw = dir[0];
+      var dk = dir[1];
+      var dq = dir[2];
+      try {
+        if (l[w + dw][k + dk][q + dq] == 1) {
+          sum += 1;
+        }
+      } on RangeError {
+        continue;
+      }
+    }
+    return sum;
+  }
+
+  int getActiveCells(List<List<List<int>>> l) {
+    var black_cnt = 0;
+    for (var w = 0; w < l.length; w++) {
+      for (var k = 0; k < l[w].length; k++) {
+        for (var q = 0; q < l[w][k].length; q++) {
+          if (l[w][k][q] == 1) {
+            black_cnt += 1;
+          }
+        }
+      }
+    }
+    return black_cnt;
+  }
+
+  var grid = generate3DList(SIZE);
+  final input = await aoc2020.loadInput(24);
+  for (var line in input) {
+    var curr = [0, 0, 0];
+    for (var match in match_dir.allMatches(line)) {
+      var dir = match.group(0);
+      var move = dirs_to_mov[dir];
+      curr[0] = curr[0] + move[0];
+      curr[1] = curr[1] + move[1];
+      curr[2] = curr[2] + move[2];
+    }
+    var final_pos = curr.map((v) => v.toString()).join(',');
+    if (blacks.contains(final_pos)) {
+      blacks.remove(final_pos);
+      grid[curr[0] + OFFSET][curr[1] + OFFSET][curr[2] + OFFSET] = 0;
+    } else {
+      blacks.add(final_pos);
+      grid[curr[0] + OFFSET][curr[1] + OFFSET][curr[2] + OFFSET] = 1;
+    }
+  }
+  print('Part 1: ${blacks.length}');
+
+  for (var t = 0; t < 100; t++) {
+    var new_state = generate3DList(SIZE);
+    for (var w = 0; w < grid.length; w++) {
+      for (var k = 0; k < grid[w].length; k++) {
+        for (var q = 0; q < grid[w][k].length; q++) {
+          var cell = grid[w][k][q];
+          var adj = getActiveNeighboursHex(grid, w, k, q);
+          if (cell == 1 && (adj == 0 || adj > 2)) {
+            new_state[w][k][q] = 0;
+          } else if (cell == 0 && adj == 2) {
+            new_state[w][k][q] = 1;
+          } else {
+            new_state[w][k][q] = cell;
+          }
+        }
+      }
+    }
+    grid = new_state;
+  }
+  // Slow.
+  print('Part 2: ${getActiveCells(grid)}');
+}
+
 void main(List<String> arguments) async {
-  await day23();
+  await day24();
 }
