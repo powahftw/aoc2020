@@ -1509,6 +1509,44 @@ void day24() async {
   print('Part 2: ${getActiveCells(grid)}');
 }
 
+void day25() async {
+  var MOD = 20201227;
+
+  int get_loop_size(int val) {
+    var curr = 1;
+    for (var idx = 0; idx < 20000000; idx++) {
+      curr *= 7;
+      curr %= MOD;
+      if (curr == val) {
+        return idx + 1;
+      }
+    }
+    return -1;
+  }
+
+  int pub_to_priv(int val, int loop) {
+    var enc_key = 1;
+    for (var idx = 0; idx < loop; idx++) {
+      enc_key *= val;
+      enc_key %= MOD;
+    }
+    return enc_key;
+  }
+
+  final input = await aoc2020.loadInput(25);
+
+  var card_pub_k = int.parse(input[0]);
+  var door_pub_k = int.parse(input[1]);
+
+  var card_ls = get_loop_size(card_pub_k);
+  var door_ls = get_loop_size(door_pub_k);
+
+  var c_priv_k = pub_to_priv(card_pub_k, door_ls);
+  var d_priv_k = pub_to_priv(door_pub_k, card_ls);
+  assert(c_priv_k == d_priv_k);
+  print('Part 1: ${d_priv_k}');
+}
+
 void main(List<String> arguments) async {
-  await day24();
+  await day25();
 }
