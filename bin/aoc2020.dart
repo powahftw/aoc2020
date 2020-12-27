@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math';
 import 'package:quiver/iterables.dart' as quiver;
 import 'package:dart_numerics/dart_numerics.dart' as numerics;
@@ -49,10 +48,10 @@ void day2() async {
     }
   });
   print('Part 1: ${valid_passwords_p1}');
-  print('Part 1: ${valid_passwords_p2}');
+  print('Part 2: ${valid_passwords_p2}');
 }
 
-int tree_encountered(input, slope_x, slope_y) {
+int treeEncountered(input, slope_x, slope_y) {
   var tree_seen = 0;
   var x = 0;
   var max_x = input[0].length;
@@ -67,7 +66,7 @@ int tree_encountered(input, slope_x, slope_y) {
 
 void day3() async {
   final input = await aoc2020.loadInput(3);
-  final part1 = tree_encountered(input, 3, 1);
+  final part1 = treeEncountered(input, 3, 1);
   print('Part 1: ${part1}');
   final slopes = [
     [1, 1],
@@ -78,12 +77,12 @@ void day3() async {
   ];
   var res2 = 1;
   for (var slope in slopes) {
-    res2 *= tree_encountered(input, slope[0], slope[1]);
+    res2 *= treeEncountered(input, slope[0], slope[1]);
   }
   print('Part 2: ${res2}');
 }
 
-bool has_passport_all_fields(tokens) {
+bool passportHasAllFields(tokens) {
   var required_fields = {'byr', 'iyr', 'eyr', 'hgt', 'hcl', 'ecl', 'pid'};
   for (var token in tokens.map((token) => token.split(':')[0])) {
     if (required_fields.contains(token)) {
@@ -93,7 +92,7 @@ bool has_passport_all_fields(tokens) {
   return required_fields.isEmpty;
 }
 
-bool are_present_fields_valid(tokens) {
+bool arePresentFieldsValid(tokens) {
   for (var token in tokens.map((token) => token.split(':'))) {
     var field = token[0];
     var value = token[1];
@@ -157,10 +156,6 @@ bool are_present_fields_valid(tokens) {
   return true;
 }
 
-List<String> separate_line_in_tokens(String line) {
-  return line.split(' ').toList();
-}
-
 void day4() async {
   final input = await aoc2020.loadInput(4);
   var valid_passports_1 = 0;
@@ -168,29 +163,28 @@ void day4() async {
   var current_passport_tokens = [];
   for (var line in input) {
     if (line.isEmpty) {
-      final all_fields_present =
-          has_passport_all_fields(current_passport_tokens);
+      final all_fields_present = passportHasAllFields(current_passport_tokens);
       valid_passports_1 += all_fields_present ? 1 : 0;
-      valid_passports_2 += (all_fields_present &&
-              are_present_fields_valid(current_passport_tokens))
-          ? 1
-          : 0;
+      valid_passports_2 +=
+          (all_fields_present && arePresentFieldsValid(current_passport_tokens))
+              ? 1
+              : 0;
       current_passport_tokens = [];
     } else {
-      current_passport_tokens.addAll(separate_line_in_tokens(line));
+      current_passport_tokens.addAll(line.split(' ').toList());
     }
   }
-  final all_fields_present = has_passport_all_fields(current_passport_tokens);
+  final all_fields_present = passportHasAllFields(current_passport_tokens);
   valid_passports_1 += all_fields_present ? 1 : 0;
   valid_passports_2 +=
-      (all_fields_present && are_present_fields_valid(current_passport_tokens))
+      (all_fields_present && arePresentFieldsValid(current_passport_tokens))
           ? 1
           : 0;
   print('Part 1: ${valid_passports_1}');
   print('Part 2: ${valid_passports_2}');
 }
 
-int calculate_seat_id(String bsp) {
+int calculateSeatId(String bsp) {
   final rows_part = bsp.substring(0, 7);
   final column_part = bsp.substring(bsp.length - 3);
   var l = 0, r = 127;
@@ -219,7 +213,7 @@ int calculate_seat_id(String bsp) {
 
 void day5() async {
   final input = await aoc2020.loadInput(5);
-  final seat_ids = input.map((line) => calculate_seat_id(line));
+  final seat_ids = input.map((line) => calculateSeatId(line));
   final min_id = seat_ids.reduce(min);
   final max_id = seat_ids.reduce(max);
   final seen = seat_ids.toSet();
@@ -279,9 +273,9 @@ void day7() async {
     var fp = part[0].trim();
     var sp = part[1].replaceAll('.', '');
     if (sp.contains('no other')) {
-      can_contain[fp] = Map();
+      can_contain[fp] = <String, int>{};
     } else {
-      can_contain[fp] = Map();
+      can_contain[fp] = <String, int>{};
       for (var color in sp.split(',')) {
         var r = RegExp(r'(\d+)\s(\D+)');
         var matches = r.allMatches(color);
@@ -322,7 +316,7 @@ void day7() async {
   var sum2 = dfs('shiny gold') - 1; // Don't count the shiny gold bag itself.
 
   print('Part 1: {$sum}');
-  print('Part 1: {$sum2}');
+  print('Part 2: {$sum2}');
 }
 
 void day8() async {
@@ -332,7 +326,7 @@ void day8() async {
   int itCompletes(prog, zeroOnError) {
     var acc = 0;
     var idx = 0;
-    var visited = Set();
+    var visited = <int>{};
     while (true) {
       if (idx == prog.length) {
         return acc;
@@ -393,7 +387,7 @@ void day9() async {
       }
     }
     if (!can_i_make) {
-      print('Part1: ${sum_to}');
+      print('Part 1: ${sum_to}');
       break;
     }
   }
@@ -407,7 +401,7 @@ void day9() async {
     if (sum_so_far == sum_to) {
       var range = input.sublist(idx, idx2);
       var res = range.reduce(min) + range.reduce(max);
-      print('Part2: ${res}');
+      print('Part 2: ${res}');
       break;
     }
   }
@@ -461,7 +455,7 @@ void day11() async {
     [1, -1],
     [-1, 1]
   ];
-  int get_nearby(List<List<String>> inp, int r, int c) {
+  int getNearby(List<List<String>> inp, int r, int c) {
     var res = 0;
     for (var d in dirs) {
       var dx = d[0];
@@ -479,7 +473,7 @@ void day11() async {
     return res;
   }
 
-  int get_visible(List<List<String>> inp, int r, int c) {
+  int getVisible(List<List<String>> inp, int r, int c) {
     var occ = 0;
     for (var d in dirs) {
       var dx = d[0];
@@ -510,8 +504,8 @@ void day11() async {
         for (var idx_c = 0; idx_c < max_c; idx_c++) {
           var prev_cell = prev_state[idx_r][idx_c];
           var occupied_nearby = (part == 1)
-              ? get_nearby(prev_state, idx_r, idx_c)
-              : get_visible(prev_state, idx_r, idx_c);
+              ? getNearby(prev_state, idx_r, idx_c)
+              : getVisible(prev_state, idx_r, idx_c);
           var too_crowded = (part == 1) ? 3 : 4;
           if (prev_cell == 'L' && occupied_nearby == 0) {
             new_state[idx_r][idx_c] = '#';
@@ -706,7 +700,7 @@ void day14() async {
   var sum2 = mem2.values.reduce((a, b) => a + b);
 
   print('Part 1: ${sum1}');
-  print('Part 1: ${sum2}');
+  print('Part 2: ${sum2}');
 }
 
 void day15() async {
@@ -977,6 +971,8 @@ int parseNext(List<String> l, int part) {
     l.removeLast(); // Remove ')'
     return val;
   }
+  assert(false);
+  return 0;
 }
 
 int calc(List<String> l, int part) {
@@ -1169,11 +1165,9 @@ void day20() async {
   }
   // All corner will have 4 unmatched edges.
   var prod = 1;
-  var last_edge_id = '';
   for (var key in unique.keys) {
     if (unique[key] == 4) {
       prod *= int.parse(key);
-      last_edge_id = key;
     }
   }
 
@@ -1186,7 +1180,7 @@ void day20() async {
 
 void day21() async {
   final input = await aoc2020.loadInput(21);
-  var ing = Set();
+  var ing = <String>{};
   var ing_cnt = {};
   var alerg_to_ing = <String, Set>{};
   for (var line in input) {
@@ -1294,7 +1288,7 @@ void day22() async {
   var last_winner_deck = [];
 
   int recursiveCombat(cp1, cp2) {
-    var cache = Set();
+    var cache = <String>{};
     while (cp1.isNotEmpty && cp2.isNotEmpty) {
       var key = '${cp1.join(',')}-${cp2.join(',')}';
       if (cache.contains(key)) {
@@ -1339,7 +1333,7 @@ class Node {
 }
 
 void day23() async {
-  String get_list(Node c, {int highlight = -1}) {
+  String getList(Node c, {int highlight = -1}) {
     var until = c.val;
     var res = '';
     while (c.next.val != until) {
@@ -1405,7 +1399,7 @@ void day23() async {
   }
 
   var p1 = solveCups(cups, 100);
-  print('Part 1: ${get_list(p1[1])}');
+  print('Part 1: ${getList(p1[1])}');
 
   var max_cup = cups.reduce(max);
   cups = cups + List<int>.generate(1000000 - max_cup, (i) => i + max_cup + 1);
@@ -1416,7 +1410,7 @@ void day23() async {
 
 void day24() async {
   var match_dir = RegExp(r'(e|se|sw|w|nw|ne)');
-  var blacks = Set();
+  var blacks = <String>{};
   var dirs_to_mov = {
     'e': [1, 0, -1],
     'se': [0, 1, -1],
@@ -1512,7 +1506,7 @@ void day24() async {
 void day25() async {
   var MOD = 20201227;
 
-  int get_loop_size(int val) {
+  int getLoopSize(int val) {
     var curr = 1;
     for (var idx = 0; idx < 20000000; idx++) {
       curr *= 7;
@@ -1524,7 +1518,7 @@ void day25() async {
     return -1;
   }
 
-  int pub_to_priv(int val, int loop) {
+  int pubToPriv(int val, int loop) {
     var enc_key = 1;
     for (var idx = 0; idx < loop; idx++) {
       enc_key *= val;
@@ -1538,11 +1532,11 @@ void day25() async {
   var card_pub_k = int.parse(input[0]);
   var door_pub_k = int.parse(input[1]);
 
-  var card_ls = get_loop_size(card_pub_k);
-  var door_ls = get_loop_size(door_pub_k);
+  var card_ls = getLoopSize(card_pub_k);
+  var door_ls = getLoopSize(door_pub_k);
 
-  var c_priv_k = pub_to_priv(card_pub_k, door_ls);
-  var d_priv_k = pub_to_priv(door_pub_k, card_ls);
+  var c_priv_k = pubToPriv(card_pub_k, door_ls);
+  var d_priv_k = pubToPriv(door_pub_k, card_ls);
   assert(c_priv_k == d_priv_k);
   print('Part 1: ${d_priv_k}');
 }
