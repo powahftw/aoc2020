@@ -1409,9 +1409,8 @@ void day23() async {
 }
 
 void day24() async {
-  var match_dir = RegExp(r'(e|se|sw|w|nw|ne)');
-  var blacks = <String>{};
-  var dirs_to_mov = {
+  final matchDir = RegExp(r'(e|se|sw|w|nw|ne)');
+  const dirsToMove = {
     'e': [1, 0, -1],
     'se': [0, 1, -1],
     'sw': [-1, 1, 0],
@@ -1419,88 +1418,72 @@ void day24() async {
     'nw': [0, -1, 1],
     'ne': [1, -1, 0]
   };
-  var SIZE = 180;
-  var OFFSET = SIZE ~/ 2;
 
-  List<List<List<int>>> generate3DList(int size) {
-    return List.generate(
-        size, (_) => List.generate(size, (_) => List.generate(size, (_) => 0)));
+  List<int> stringToInts(String s) {
+    return s.split(',').map((v) => int.parse(v)).toList();
   }
 
-  int getActiveNeighboursHex(List<List<List<int>>> l, int w, int k, int q) {
-    var sum = 0;
-    for (var dir in dirs_to_mov.values) {
-      var dw = dir[0];
-      var dk = dir[1];
-      var dq = dir[2];
-      try {
-        if (l[w + dw][k + dk][q + dq] == 1) {
-          sum += 1;
-        }
-      } on RangeError {
-        continue;
-      }
+  String intsToString(int x, int y, int z) {
+    return [x, y, z].map((v) => v.toString()).join(',');
+  }
+
+  int getNearbyBlacks(String s, Set<String> b) {
+    var cnt = 0;
+    final coords = stringToInts(s);
+    for (var dir in dirsToMove.values) {
+      final isBlack = b.contains(intsToString(
+          coords[0] + dir[0], coords[1] + dir[1], coords[2] + dir[2]));
+      cnt += isBlack ? 1 : 0;
     }
-    return sum;
+    return cnt;
   }
 
-  int getActiveCells(List<List<List<int>>> l) {
-    var black_cnt = 0;
-    for (var w = 0; w < l.length; w++) {
-      for (var k = 0; k < l[w].length; k++) {
-        for (var q = 0; q < l[w][k].length; q++) {
-          if (l[w][k][q] == 1) {
-            black_cnt += 1;
-          }
-        }
-      }
-    }
-    return black_cnt;
-  }
-
-  var grid = generate3DList(SIZE);
   final input = await aoc2020.loadInput(24);
+
+  var blackCells = <String>{};
   for (var line in input) {
-    var curr = [0, 0, 0];
-    for (var match in match_dir.allMatches(line)) {
-      var dir = match.group(0);
-      var move = dirs_to_mov[dir];
+    final curr = [0, 0, 0];
+    for (var match in matchDir.allMatches(line)) {
+      final dir = match.group(0);
+      final move = dirsToMove[dir];
       curr[0] = curr[0] + move[0];
       curr[1] = curr[1] + move[1];
       curr[2] = curr[2] + move[2];
     }
-    var final_pos = curr.map((v) => v.toString()).join(',');
-    if (blacks.contains(final_pos)) {
-      blacks.remove(final_pos);
-      grid[curr[0] + OFFSET][curr[1] + OFFSET][curr[2] + OFFSET] = 0;
+    final finalPos = intsToString(curr[0], curr[1], curr[2]);
+    if (blackCells.contains(finalPos)) {
+      blackCells.remove(finalPos);
     } else {
-      blacks.add(final_pos);
-      grid[curr[0] + OFFSET][curr[1] + OFFSET][curr[2] + OFFSET] = 1;
+      blackCells.add(finalPos);
     }
   }
-  print('Part 1: ${blacks.length}');
+  print('Part 1: ${blackCells.length}');
 
   for (var t = 0; t < 100; t++) {
-    var new_state = generate3DList(SIZE);
-    for (var w = 0; w < grid.length; w++) {
-      for (var k = 0; k < grid[w].length; k++) {
-        for (var q = 0; q < grid[w][k].length; q++) {
-          var cell = grid[w][k][q];
-          var adj = getActiveNeighboursHex(grid, w, k, q);
-          if (cell == 1 && (adj == 0 || adj > 2)) {
-            new_state[w][k][q] = 0;
-          } else if (cell == 0 && adj == 2) {
-            new_state[w][k][q] = 1;
-          } else {
-            new_state[w][k][q] = cell;
-          }
-        }
+    final toCheck = <String>{};
+    final newBlacks = <String>{};
+
+    for (var prevBlack in blackCells.toSet()) {
+      final coords = stringToInts(prevBlack);
+      for (var dir in dirsToMove.values) {
+        toCheck.add(intsToString(
+            coords[0] + dir[0], coords[1] + dir[1], coords[2] + dir[2]));
+      }
+      toCheck.add(intsToString(coords[0], coords[1], coords[2]));
+    }
+
+    for (var potentialBlack in toCheck.toSet()) {
+      final nearbyBlacks = getNearbyBlacks(potentialBlack, blackCells);
+      final wasBlack = blackCells.contains(potentialBlack);
+      if ((!wasBlack && nearbyBlacks == 2) ||
+          (wasBlack && (nearbyBlacks > 0 && nearbyBlacks < 3))) {
+        newBlacks.add(potentialBlack);
       }
     }
-    grid = new_state;
+    blackCells = newBlacks;
   }
-  // Slow.
-  print('Part 2: ${getActiveCells(grid)}');
+
+  print('Part 2: ${blackCells.length}');
 }
 
 void day25() async {
