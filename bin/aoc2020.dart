@@ -710,27 +710,27 @@ void day15() async {
       .toList();
 
   void solve(int part) {
-    final UP_TO = part == 1 ? 2020 : 30000000;
-    var last_spoken = 0;
-    var spoken_at = {};
-    for (var idx = 0; idx < UP_TO; idx++) {
-      if (idx < input.length) {
-        last_spoken = input[idx];
-        spoken_at[last_spoken] = [idx];
-      } else {
-        if (spoken_at.containsKey(last_spoken)) {
-          var val = spoken_at[last_spoken];
-          if (val.length > 1) {
-            last_spoken = val[val.length - 1] - val[val.length - 2];
-            spoken_at.putIfAbsent(last_spoken, () => []).add(idx);
-          } else {
-            last_spoken = 0;
-            spoken_at[0].add(idx);
-          }
+    final upTo = (part == 1) ? 2020 : 30000000;
+    final lastSeen = <int, List<int>>{};
+
+    for (var idx = 0; idx < input.length; idx++) {
+      lastSeen[input[idx]] = [idx];
+    }
+
+    var lastNumber = input[input.length - 1];
+    for (var idx = input.length; idx < upTo; idx++) {
+      if (lastSeen.containsKey(lastNumber)) {
+        final seenAt = lastSeen[lastNumber];
+        if (seenAt.length > 1) {
+          lastNumber = seenAt[seenAt.length - 1] - seenAt[seenAt.length - 2];
+          lastSeen.putIfAbsent(lastNumber, () => []).add(idx);
+        } else {
+          lastNumber = 0;
+          lastSeen[0].add(idx);
         }
       }
     }
-    print('Part ${part}: ${last_spoken}');
+    print('Part ${part}: ${lastNumber}');
   }
 
   solve(1);
@@ -1068,11 +1068,11 @@ void day19() async {
 
   cache = {};
 
+  // Used Python. Dart Regexp seemed to be too slow. https://github.com/dart-lang/sdk/issues/9360
   var r2 = buildRegex(rules, ROOT_RULE, 2);
   var regex2 = RegExp(r2);
-  print(regex2);
-  // Used Python. Dart Regexp seemed to be too slow. https://github.com/dart-lang/sdk/issues/9360
-  //print('Part 2: ${messages.where((m) => regex2.stringMatch(m) == m).length}');
+  // print(regex2);
+  // print('Part 2: ${messages.where((m) => regex2.stringMatch(m) == m).length}');
 }
 
 void day20() async {
