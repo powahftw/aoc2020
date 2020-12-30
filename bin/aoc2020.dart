@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:quiver/iterables.dart' as quiver;
+import 'package:quiver/collection.dart' as quiver;
 import 'package:dart_numerics/dart_numerics.dart' as numerics;
 import 'package:trotter/trotter.dart' as trotter;
 
@@ -7,20 +8,20 @@ import 'package:aoc2020/aoc2020.dart' as aoc2020;
 
 void day1() async {
   final input = (await aoc2020.loadInput(1)).map(int.parse).toList();
-  const should_sum_to = 2020;
+  const shouldSumTo = 2020;
   final seen = <int>{};
   input.forEach((number) {
-    if (seen.contains(should_sum_to - number)) {
-      print('Part 1: ${number * (should_sum_to - number)}');
+    if (seen.contains(shouldSumTo - number)) {
+      print('Part 1: ${number * (shouldSumTo - number)}');
     }
     seen.add(number);
   });
 
   for (var i = 0; i < input.length - 2; i++) {
     for (var j = i + 1; j < input.length - 1; j++) {
-      final partial_sum = input[i] + input[j];
-      if (seen.contains(should_sum_to - partial_sum)) {
-        print('Part 2: ${input[i] * input[j] * (should_sum_to - partial_sum)}');
+      final partialSum = input[i] + input[j];
+      if (seen.contains(shouldSumTo - partialSum)) {
+        print('Part 2: ${input[i] * input[j] * (shouldSumTo - partialSum)}');
         return;
       }
     }
@@ -28,40 +29,39 @@ void day1() async {
 }
 
 void day2() async {
+  final reg = RegExp(r'(\d+)-(\d+) (\D): (\D+)');
   final input = (await aoc2020.loadInput(2));
-  var valid_passwords_p1 = 0;
-  var valid_passwords_p2 = 0;
+  var validPasswordsP1 = 0;
+  var validPasswordsP2 = 0;
   input.forEach((line) {
-    final s_line = line.split(' ');
-    final range = s_line[0].split('-');
-    final min = int.parse(range[0]);
-    final max = int.parse(range[1]);
-    final letter = s_line[1][0];
-    final password = s_line[2];
+    final matches = reg.allMatches(line).elementAt(0);
+    final min = int.parse(matches.group(1));
+    final max = int.parse(matches.group(2));
+    final letter = matches.group(3);
+    final password = matches.group(4);
     if (min <= letter.allMatches(password).length &&
         letter.allMatches(password).length <= max) {
-      valid_passwords_p1 += 1;
+      validPasswordsP1 += 1;
     }
-    ;
     if ((password[min - 1] == letter) ^ (password[max - 1] == letter)) {
-      valid_passwords_p2 += 1;
+      validPasswordsP2 += 1;
     }
   });
-  print('Part 1: ${valid_passwords_p1}');
-  print('Part 2: ${valid_passwords_p2}');
+  print('Part 1: ${validPasswordsP1}');
+  print('Part 2: ${validPasswordsP2}');
 }
 
-int treeEncountered(input, slope_x, slope_y) {
-  var tree_seen = 0;
+int treeEncountered(input, slopeX, slopeY) {
+  var seenTree = 0;
   var x = 0;
-  var max_x = input[0].length;
-  for (var y = slope_y; y < input.length; y += slope_y) {
-    x = (x + slope_x) % max_x;
+  var maxX = input[0].length;
+  for (var y = slopeY; y < input.length; y += slopeY) {
+    x = (x + slopeX) % maxX;
     if (input[y][x] == '#') {
-      tree_seen += 1;
+      seenTree += 1;
     }
   }
-  return tree_seen;
+  return seenTree;
 }
 
 void day3() async {
@@ -82,39 +82,28 @@ void day3() async {
   print('Part 2: ${res2}');
 }
 
-bool passportHasAllFields(tokens) {
-  var required_fields = {'byr', 'iyr', 'eyr', 'hgt', 'hcl', 'ecl', 'pid'};
-  for (var token in tokens.map((token) => token.split(':')[0])) {
-    if (required_fields.contains(token)) {
-      required_fields.remove(token);
-    }
-  }
-  return required_fields.isEmpty;
+bool passportHasAllFields(tokenAndVals, requiredFields) {
+  final tokens = Set.from(tokenAndVals.map((token) => token.split(':')[0]));
+  return requiredFields.every((field) => tokens.contains(field));
 }
 
 bool arePresentFieldsValid(tokens) {
   for (var token in tokens.map((token) => token.split(':'))) {
-    var field = token[0];
-    var value = token[1];
+    final field = token[0];
+    final value = token[1];
     switch (field) {
       case 'byr':
-        if (!(value.length == 4 &&
-            int.parse(value) < 2003 &&
-            int.parse(value) > 1919)) {
+        if (!(int.parse(value) < 2003 && int.parse(value) > 1919)) {
           return false;
         }
         break;
       case 'iyr':
-        if (!(value.length == 4 &&
-            int.parse(value) < 2021 &&
-            int.parse(value) > 2009)) {
+        if (!(int.parse(value) < 2021 && int.parse(value) > 2009)) {
           return false;
         }
         break;
       case 'eyr':
-        if (!(value.length == 4 &&
-            int.parse(value) < 2031 &&
-            int.parse(value) > 2019)) {
+        if (!(int.parse(value) < 2031 && int.parse(value) > 2019)) {
           return false;
         }
         break;
@@ -141,13 +130,21 @@ bool arePresentFieldsValid(tokens) {
         }
         break;
       case 'ecl':
-        if (!{'amb', 'blu', 'brn', 'gry', 'grn', 'hzl', 'oth'}
-            .contains(value)) {
+        const allowedEyeColors = {
+          'amb',
+          'blu',
+          'brn',
+          'gry',
+          'grn',
+          'hzl',
+          'oth'
+        };
+        if (!allowedEyeColors.contains(value)) {
           return false;
         }
         break;
       case 'pid':
-        if (!(value.length == 9 && (value) != null)) {
+        if (!(value.length == 9 && value != null)) {
           return false;
         }
         break;
@@ -157,31 +154,27 @@ bool arePresentFieldsValid(tokens) {
 }
 
 void day4() async {
+  const requiredFields = {'byr', 'iyr', 'eyr', 'hgt', 'hcl', 'ecl', 'pid'};
   final input = await aoc2020.loadInput(4);
-  var valid_passports_1 = 0;
-  var valid_passports_2 = 0;
-  var current_passport_tokens = [];
-  for (var line in input) {
+  var validPassportsP1 = 0;
+  var validPassportsP2 = 0;
+  var currentPassportTokens = [];
+  for (var line in [...input, '']) {
     if (line.isEmpty) {
-      final all_fields_present = passportHasAllFields(current_passport_tokens);
-      valid_passports_1 += all_fields_present ? 1 : 0;
-      valid_passports_2 +=
-          (all_fields_present && arePresentFieldsValid(current_passport_tokens))
-              ? 1
-              : 0;
-      current_passport_tokens = [];
-    } else {
-      current_passport_tokens.addAll(line.split(' ').toList());
-    }
-  }
-  final all_fields_present = passportHasAllFields(current_passport_tokens);
-  valid_passports_1 += all_fields_present ? 1 : 0;
-  valid_passports_2 +=
-      (all_fields_present && arePresentFieldsValid(current_passport_tokens))
+      final allRequiredFieldsArePresent =
+          passportHasAllFields(currentPassportTokens, requiredFields);
+      validPassportsP1 += allRequiredFieldsArePresent ? 1 : 0;
+      validPassportsP2 += (allRequiredFieldsArePresent &&
+              arePresentFieldsValid(currentPassportTokens))
           ? 1
           : 0;
-  print('Part 1: ${valid_passports_1}');
-  print('Part 2: ${valid_passports_2}');
+      currentPassportTokens = [];
+    } else {
+      currentPassportTokens.addAll(line.split(' ').toList());
+    }
+  }
+  print('Part 1: ${validPassportsP1}');
+  print('Part 2: ${validPassportsP2}');
 }
 
 int calculateSeatId(String bsp) {
@@ -1069,8 +1062,8 @@ void day19() async {
   cache = {};
 
   // Used Python. Dart Regexp seemed to be too slow. https://github.com/dart-lang/sdk/issues/9360
-  var r2 = buildRegex(rules, ROOT_RULE, 2);
-  var regex2 = RegExp(r2);
+  // var r2 = buildRegex(rules, ROOT_RULE, 2);
+  // var regex2 = RegExp(r2);
   // print(regex2);
   // print('Part 2: ${messages.where((m) => regex2.stringMatch(m) == m).length}');
 }
@@ -1147,53 +1140,56 @@ void day20() async {
 
 void day21() async {
   final input = await aoc2020.loadInput(21);
-  var ing = <String>{};
-  var ing_cnt = {};
-  var alerg_to_ing = <String, Set>{};
-  for (var line in input) {
-    var parts = line.replaceAll('(', '').replaceAll(')', '').split('contains');
-    var ingredients = parts[0].trim().split(' ').toSet();
-    var alergens = parts[1].trim().split(',');
+  var ingredients = <String>{};
+  var ingredientsCount = {};
+  var alergensToIngredients = <String, Set>{};
+  for (var dish in input) {
+    final parts =
+        dish.replaceAll('(', '').replaceAll(')', '').split('contains');
+    final dishIngredients = parts[0].trim().split(' ').toSet();
+    final dishAlergens = parts[1].split(',');
 
-    ing = ing.union(ingredients);
-    for (var ingredient in ingredients) {
-      if (ing_cnt.containsKey(ingredient)) {
-        ing_cnt[ingredient] += 1;
+    ingredients = ingredients.union(dishIngredients);
+    for (var ingredient in dishIngredients) {
+      if (ingredientsCount.containsKey(ingredient)) {
+        ingredientsCount[ingredient] += 1;
       } else {
-        ing_cnt[ingredient] = 1;
+        ingredientsCount[ingredient] = 1;
       }
     }
 
-    for (var alergen in alergens) {
+    for (var alergen in dishAlergens) {
       alergen = alergen.trim();
-      if (alerg_to_ing.containsKey(alergen)) {
-        alerg_to_ing[alergen] = alerg_to_ing[alergen].intersection(ingredients);
+      if (alergensToIngredients.containsKey(alergen)) {
+        alergensToIngredients[alergen] =
+            alergensToIngredients[alergen].intersection(dishIngredients);
       } else {
-        alerg_to_ing[alergen] = ingredients;
+        alergensToIngredients[alergen] = dishIngredients;
       }
     }
   }
 
-  var all_alerg_candidate = alerg_to_ing.values.reduce((a, b) => a.union(b));
+  var allIngredientsWithPotentialAlergens =
+      alergensToIngredients.values.reduce((a, b) => a.union(b));
   var tot = 0;
-  for (var ingredient in ing) {
-    if (!(all_alerg_candidate.contains(ingredient))) {
-      tot += ing_cnt[ingredient];
+  for (var ingredient in ingredients) {
+    if (!(allIngredientsWithPotentialAlergens.contains(ingredient))) {
+      tot += ingredientsCount[ingredient];
     }
   }
   print('Part 1: ${tot}');
 
-  var found = {};
-  var all_found = false;
-  while (!all_found) {
-    all_found = true;
-    for (var alerg in alerg_to_ing.keys) {
-      if (alerg_to_ing[alerg].length == 1) {
-        var ing = alerg_to_ing[alerg].single;
+  final found = {};
+  var allFound = false;
+  while (!allFound) {
+    allFound = true;
+    for (var alerg in alergensToIngredients.keys) {
+      if (alergensToIngredients[alerg].length == 1) {
+        var ing = alergensToIngredients[alerg].single;
         found[ing] = alerg;
       } else {
-        all_found = false;
-        alerg_to_ing[alerg] = alerg_to_ing[alerg]
+        allFound = false;
+        alergensToIngredients[alerg] = alergensToIngredients[alerg]
             .where((ing) => !found.keys.contains(ing))
             .toSet();
       }
@@ -1454,11 +1450,11 @@ void day24() async {
 }
 
 void day25() async {
-  var MOD = 20201227;
+  const MOD = 20201227;
 
   int getLoopSize(int val) {
     var curr = 1;
-    for (var idx = 0; idx < 20000000; idx++) {
+    for (var idx = 0; idx < MOD; idx++) {
       curr *= 7;
       curr %= MOD;
       if (curr == val) {
@@ -1469,26 +1465,26 @@ void day25() async {
   }
 
   int pubToPriv(int val, int loop) {
-    var enc_key = 1;
+    var candidateEncKey = 1;
     for (var idx = 0; idx < loop; idx++) {
-      enc_key *= val;
-      enc_key %= MOD;
+      candidateEncKey *= val;
+      candidateEncKey %= MOD;
     }
-    return enc_key;
+    return candidateEncKey;
   }
 
   final input = await aoc2020.loadInput(25);
 
-  var card_pub_k = int.parse(input[0]);
-  var door_pub_k = int.parse(input[1]);
+  final cardPublicKey = int.parse(input[0]);
+  final doorPublicKey = int.parse(input[1]);
 
-  var card_ls = getLoopSize(card_pub_k);
-  var door_ls = getLoopSize(door_pub_k);
+  final cardLoopSize = getLoopSize(cardPublicKey);
+  final doorLoopSize = getLoopSize(doorPublicKey);
 
-  var c_priv_k = pubToPriv(card_pub_k, door_ls);
-  var d_priv_k = pubToPriv(door_pub_k, card_ls);
-  assert(c_priv_k == d_priv_k);
-  print('Part 1: ${d_priv_k}');
+  final cardPrivateKey = pubToPriv(cardPublicKey, doorLoopSize);
+  final doorPrivateKey = pubToPriv(doorPublicKey, cardLoopSize);
+  assert(cardPrivateKey == doorPrivateKey);
+  print('Part 1: ${doorPrivateKey}');
 }
 
 void main(List<String> arguments) async {
