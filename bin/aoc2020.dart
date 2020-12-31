@@ -112,14 +112,14 @@ bool arePresentFieldsValid(tokens) {
         if (int.tryParse(value.substring(0, value.length - 2)) == null) {
           return false;
         }
-        var num_value = int.parse(value.substring(0, value.length - 2));
+        var numValue = int.parse(value.substring(0, value.length - 2));
         if (!((dim == 'cm') || (dim == 'in'))) {
           return false;
         }
-        if (((dim == 'cm') && (num_value > 193 || num_value < 150))) {
+        if (((dim == 'cm') && (numValue > 193 || numValue < 150))) {
           return false;
         }
-        if (((dim == 'in') && (num_value < 59 || num_value > 76))) {
+        if (((dim == 'in') && (numValue < 59 || numValue > 76))) {
           return false;
         }
         break;
@@ -178,12 +178,12 @@ void day4() async {
 }
 
 int calculateSeatId(String bsp) {
-  final rows_part = bsp.substring(0, 7);
-  final column_part = bsp.substring(bsp.length - 3);
+  final rowsPart = bsp.substring(0, 7);
+  final columnPart = bsp.substring(bsp.length - 3);
   var l = 0, r = 127;
-  for (var i = 0; i < rows_part.length; i++) {
+  for (var i = 0; i < rowsPart.length; i++) {
     var middle = (r - l + 1) ~/ 2;
-    if (rows_part[i] == 'F') {
+    if (rowsPart[i] == 'F') {
       r -= middle;
     } else {
       l += middle;
@@ -192,9 +192,9 @@ int calculateSeatId(String bsp) {
   var row = l;
   l = 0;
   r = 7;
-  for (var i = 0; i < column_part.length; i++) {
+  for (var i = 0; i < columnPart.length; i++) {
     var middle = (r - l + 1) ~/ 2;
-    if (column_part[i] == 'L') {
+    if (columnPart[i] == 'L') {
       r -= middle;
     } else {
       l += middle;
@@ -206,83 +206,82 @@ int calculateSeatId(String bsp) {
 
 void day5() async {
   final input = await aoc2020.loadInput(5);
-  final seat_ids = input.map((line) => calculateSeatId(line));
-  final min_id = seat_ids.reduce(min);
-  final max_id = seat_ids.reduce(max);
-  final seen = seat_ids.toSet();
+  final seatIds = input.map((line) => calculateSeatId(line));
+  final minId = seatIds.reduce(min);
+  final maxId = seatIds.reduce(max);
+  final seen = seatIds.toSet();
   var missing;
-  for (var i = min_id; i < max_id; i++) {
+  for (var i = minId; i < maxId; i++) {
     if (!(seen.contains(i))) {
       missing = i;
       break;
     }
   }
-  print('Part 1: ${max_id}');
+  print('Part 1: ${maxId}');
   print('Part 2: ${missing}');
 }
 
 void day6() async {
-  var input = await aoc2020.loadInput(6);
-  var sum_counts_1 = 0, sum_counts_2 = 0;
-  var any_seen = <String>{};
-  var all_seen = <String>{};
-  var new_group = true;
+  final input = await aoc2020.loadInput(6);
+  var sumCountsP1 = 0, sumCountsP2 = 0;
+  final anySeen = <String>{};
+  final allSeen = <String>{};
+  var newGroup = true;
   for (var line in input) {
     if (line.isEmpty) {
-      sum_counts_1 += any_seen.length;
-      sum_counts_2 += all_seen.length;
-      any_seen = {};
-      all_seen = {};
-      new_group = true;
+      sumCountsP1 += anySeen.length;
+      sumCountsP2 += allSeen.length;
+      anySeen.clear();
+      allSeen.clear();
+      newGroup = true;
     } else {
-      any_seen.addAll(line.split(''));
-      if (new_group) {
-        all_seen.addAll(line.split(''));
-        new_group = false;
+      final chars = line.split('');
+      anySeen.addAll(chars);
+      if (newGroup) {
+        allSeen.addAll(chars);
+        newGroup = false;
       } else {
-        for (var c_seen in List.from(all_seen)) {
-          if (!line.contains(c_seen)) {
-            all_seen.remove(c_seen);
+        for (var seenChar in List.from(allSeen)) {
+          if (!line.contains(seenChar)) {
+            allSeen.remove(seenChar);
           }
         }
       }
     }
   }
-  sum_counts_1 += any_seen.length;
-  sum_counts_2 += all_seen.length;
-  print('Part 1: ${sum_counts_1}');
-  print('Part 2: ${sum_counts_2}');
+  sumCountsP1 += anySeen.length;
+  sumCountsP2 += allSeen.length;
+  print('Part 1: ${sumCountsP1}');
+  print('Part 2: ${sumCountsP2}');
 }
 
 void day7() async {
-  var input = await aoc2020.loadInput(7);
-  var can_contain = <String, Map<String, int>>{};
+  final colorRegExp = RegExp(r'(\d+)\s(\D+)');
+  final input = await aoc2020.loadInput(7);
+  final canContain = <String, Map<String, int>>{};
   for (var line in input) {
     if (line.isEmpty) {
       continue;
     }
     line = line.replaceAll('bags', '').replaceAll('bag', '');
-    var part = line.split(' contain ');
-    var fp = part[0].trim();
-    var sp = part[1].replaceAll('.', '');
-    if (sp.contains('no other')) {
-      can_contain[fp] = <String, int>{};
-    } else {
-      can_contain[fp] = <String, int>{};
+    final part = line.split(' contain ');
+    final fp = part[0].trim();
+    final sp = part[1].replaceAll('.', '');
+    canContain[fp] = <String, int>{};
+    if (!sp.contains('no other')) {
       for (var color in sp.split(',')) {
-        var r = RegExp(r'(\d+)\s(\D+)');
-        var matches = r.allMatches(color);
-        var number = int.parse(matches.elementAt(0).group(1));
-        var color_name = matches.elementAt(0).group(2).trim();
-        can_contain[fp][color_name] = number;
+        final matches = colorRegExp.allMatches(color).elementAt(0);
+        final number = int.parse(matches.group(1));
+        final colorName = matches.group(2).trim();
+        canContain[fp][colorName] = number;
       }
     }
   }
   bool canReach(String from, String to) {
-    if (can_contain[from].containsKey(to)) {
+    if (canContain[from].containsKey(to)) {
       return true;
     }
-    for (var reach in can_contain[from].keys) {
+    for (var reach in canContain[from].keys) {
       if (canReach(reach, to)) {
         return true;
       }
@@ -291,35 +290,35 @@ void day7() async {
   }
 
   var sum = 0;
-  for (var color in can_contain.keys) {
+  for (var color in canContain.keys) {
     sum += canReach(color, 'shiny gold') ? 1 : 0;
   }
 
   int dfs(String from) {
-    if (can_contain[from].isEmpty) {
+    if (canContain[from].isEmpty) {
       return 1;
     }
-    var sum_so_far = 1;
-    for (var key in can_contain[from].keys) {
-      sum_so_far += can_contain[from][key] * dfs(key);
+    var sumSoFar = 1;
+    for (var key in canContain[from].keys) {
+      sumSoFar += canContain[from][key] * dfs(key);
     }
-    return sum_so_far;
+    return sumSoFar;
   }
 
-  var sum2 = dfs('shiny gold') - 1; // Don't count the shiny gold bag itself.
+  final sum2 = dfs('shiny gold') - 1; // Don't count the shiny gold bag itself.
 
-  print('Part 1: {$sum}');
-  print('Part 2: {$sum2}');
+  print('Part 1: ${sum}');
+  print('Part 2: ${sum2}');
 }
 
 void day8() async {
-  var input = await aoc2020.loadInput(8);
-  var prog = input.map((line) => line.split(' ')).toList();
+  final input = await aoc2020.loadInput(8);
+  final prog = input.map((line) => line.split(' ')).toList();
 
   int itCompletes(prog, zeroOnError) {
     var acc = 0;
     var idx = 0;
-    var visited = <int>{};
+    final visited = <int>{};
     while (true) {
       if (idx == prog.length) {
         return acc;
@@ -349,10 +348,10 @@ void day8() async {
   print('Part 1: ${itCompletes(prog, false)}');
 
   for (var inst in prog) {
-    var p_inst = inst[0];
-    if (p_inst == 'jmp') {
+    var prevInst = inst[0];
+    if (prevInst == 'jmp') {
       inst[0] = 'nop';
-    } else if (p_inst == 'nop') {
+    } else if (prevInst == 'nop') {
       inst[0] = 'jmp';
     }
     var res = itCompletes(prog, true);
@@ -360,40 +359,44 @@ void day8() async {
       print('Part 2: ${res}');
       break;
     }
-    inst[0] = p_inst;
+    inst[0] = prevInst;
   }
 }
 
 void day9() async {
   final input =
-      (await aoc2020.loadInput(9)).map((s_num) => int.parse(s_num)).toList();
+      (await aoc2020.loadInput(9)).map((sNum) => int.parse(sNum)).toList();
   const PREVIOUS = 25;
-  var sum_to;
+  var shouldSumUpTo;
   for (var idx = PREVIOUS; idx < input.length; idx++) {
-    sum_to = input[idx];
-    var can_i_make = false;
-    for (var sub_idx = idx - PREVIOUS; sub_idx < idx - 1; sub_idx++) {
-      for (var sub_idx_2 = sub_idx + 1; sub_idx_2 < idx; sub_idx_2++) {
-        if (input[sub_idx_2] + input[sub_idx] == sum_to) {
-          can_i_make = true;
+    shouldSumUpTo = input[idx];
+    var canIMake = false;
+    for (var minuendIdx1 = idx - PREVIOUS;
+        minuendIdx1 < idx - 1;
+        minuendIdx1++) {
+      for (var minuendIdx2 = minuendIdx1 + 1;
+          minuendIdx2 < idx;
+          minuendIdx2++) {
+        if (input[minuendIdx2] + input[minuendIdx1] == shouldSumUpTo) {
+          canIMake = true;
         }
       }
     }
-    if (!can_i_make) {
-      print('Part 1: ${sum_to}');
+    if (!canIMake) {
+      print('Part 1: ${shouldSumUpTo}');
       break;
     }
   }
   for (var idx = 0; idx < input.length - 1; idx++) {
     var idx2 = idx + 1;
-    var sum_so_far = input[idx] + input[idx2];
-    while (idx2 < input.length && sum_so_far < sum_to) {
+    var sumSoFar = input[idx] + input[idx2];
+    while (idx2 < input.length && sumSoFar < shouldSumUpTo) {
       idx2 += 1;
-      sum_so_far += input[idx2];
+      sumSoFar += input[idx2];
     }
-    if (sum_so_far == sum_to) {
-      var range = input.sublist(idx, idx2);
-      var res = range.reduce(min) + range.reduce(max);
+    if (sumSoFar == shouldSumUpTo) {
+      final range = input.sublist(idx, idx2);
+      final res = range.reduce(min) + range.reduce(max);
       print('Part 2: ${res}');
       break;
     }
@@ -402,25 +405,25 @@ void day9() async {
 
 void day10() async {
   final input =
-      (await aoc2020.loadInput(10)).map((s_num) => int.parse(s_num)).toList();
+      (await aoc2020.loadInput(10)).map((sNum) => int.parse(sNum)).toList();
 
-  final device_rating = input.reduce(max) + 3;
-  input.addAll([0, device_rating]);
+  final deviceRating = input.reduce(max) + 3;
+  input.addAll([0, deviceRating]);
   input.sort((a, b) => a.compareTo(b));
-  var trimmedList = List<int>.from(input);
-  var shiftedList = List<int>.from(input);
+  final trimmedList = List<int>.from(input);
+  final shiftedList = List<int>.from(input);
   shiftedList.remove(0);
   trimmedList.removeLast();
-  var jumps =
+  final jumps =
       quiver.zip([trimmedList, shiftedList]).map((x) => x[1] - x[0]).toList();
-  int count(l, n) {
+  int countOccurrence(l, n) {
     return l.where((e) => e == n).toList().length;
   }
 
-  var sol1 = count(jumps, 1) * count(jumps, 3);
+  final sol1 = countOccurrence(jumps, 1) * countOccurrence(jumps, 3);
   print('Part 1: ${sol1}');
 
-  var ways = List.filled(input.length, 0);
+  final ways = List.filled(input.length, 0);
   ways[0] = 1;
   for (var i = 0; i < input.length - 1; i++) {
     for (var j = i + 1; j < input.length; j++) {
@@ -434,10 +437,6 @@ void day10() async {
 }
 
 void day11() async {
-  final input =
-      (await aoc2020.loadInput(11)).map((line) => line.split('')).toList();
-  var max_r = input.length;
-  var max_c = input[0].length;
   const dirs = [
     [0, 1],
     [1, 0],
@@ -448,17 +447,20 @@ void day11() async {
     [1, -1],
     [-1, 1]
   ];
+
+  final input =
+      (await aoc2020.loadInput(11)).map((line) => line.split('')).toList();
+  final rowsN = input.length;
+  final colsN = input[0].length;
   int getNearby(List<List<String>> inp, int r, int c) {
     var res = 0;
     for (var d in dirs) {
-      var dx = d[0];
-      var dy = d[1];
-      var x = c + dx;
-      var y = r + dy;
-      if (x < 0 || x >= max_c) {
+      final x = c + d[0];
+      final y = r + d[1];
+      if (x < 0 || x >= colsN) {
         continue;
       }
-      if (y < 0 || y >= max_r) {
+      if (y < 0 || y >= rowsN) {
         continue;
       }
       res += (inp[y][x] == '#') ? 1 : 0;
@@ -469,19 +471,19 @@ void day11() async {
   int getVisible(List<List<String>> inp, int r, int c) {
     var occ = 0;
     for (var d in dirs) {
-      var dx = d[0];
-      var dy = d[1];
-      var new_r = r + dy;
-      var new_c = c + dx;
-      while (new_r >= 0 && new_r < max_r && new_c >= 0 && new_c < max_c) {
-        if (inp[new_r][new_c] == '#') {
+      final dx = d[0];
+      final dy = d[1];
+      var newRow = r + dy;
+      var newCol = c + dx;
+      while (newRow >= 0 && newRow < rowsN && newCol >= 0 && newCol < colsN) {
+        if (inp[newRow][newCol] == '#') {
           occ += 1;
           break;
-        } else if (inp[new_r][new_c] == 'L') {
+        } else if (inp[newRow][newCol] == 'L') {
           break;
         }
-        new_r += dy;
-        new_c += dx;
+        newRow += dy;
+        newCol += dx;
       }
     }
     return occ;
@@ -489,34 +491,34 @@ void day11() async {
 
   void solve(int part) {
     var changed = true;
-    var prev_state = input;
+    var prevState = input;
     while (changed) {
       changed = false;
-      var new_state = List.generate(max_r, (_) => List<String>(max_c));
-      for (var idx_r = 0; idx_r < max_r; idx_r++) {
-        for (var idx_c = 0; idx_c < max_c; idx_c++) {
-          var prev_cell = prev_state[idx_r][idx_c];
-          var occupied_nearby = (part == 1)
-              ? getNearby(prev_state, idx_r, idx_c)
-              : getVisible(prev_state, idx_r, idx_c);
-          var too_crowded = (part == 1) ? 3 : 4;
-          if (prev_cell == 'L' && occupied_nearby == 0) {
-            new_state[idx_r][idx_c] = '#';
+      var newState = List.generate(rowsN, (_) => List<String>(colsN));
+      for (var idxR = 0; idxR < rowsN; idxR++) {
+        for (var idxC = 0; idxC < colsN; idxC++) {
+          final prevCell = prevState[idxR][idxC];
+          final occupiedNearby = (part == 1)
+              ? getNearby(prevState, idxR, idxC)
+              : getVisible(prevState, idxR, idxC);
+          final tooCrowded = (part == 1) ? 3 : 4;
+          if (prevCell == 'L' && occupiedNearby == 0) {
+            newState[idxR][idxC] = '#';
             changed = true;
-          } else if (prev_cell == '#' && occupied_nearby > too_crowded) {
-            new_state[idx_r][idx_c] = 'L';
+          } else if (prevCell == '#' && occupiedNearby > tooCrowded) {
+            newState[idxR][idxC] = 'L';
             changed = true;
           } else {
-            new_state[idx_r][idx_c] = prev_state[idx_r][idx_c];
+            newState[idxR][idxC] = prevState[idxR][idxC];
           }
         }
       }
-      prev_state = new_state;
+      prevState = newState;
     }
-    var count_occupied = prev_state
+    var countOccupied = prevState
         .map((line) => line.where((e) => e == '#').length)
         .reduce((a, b) => a + b);
-    print('Part ${part}: ${count_occupied}');
+    print('Part ${part}: ${countOccupied}');
   }
 
   solve(1);
@@ -525,8 +527,8 @@ void day11() async {
 
 void day12() async {
   final input = await aoc2020.loadInput(12);
-  var dirs = ['E', 'S', 'W', 'N'];
-  var movs = {
+  const dirs = ['E', 'S', 'W', 'N'];
+  const movs = {
     'E': [1, 0],
     'S': [0, -1],
     'W': [-1, 0],
@@ -549,8 +551,8 @@ void day12() async {
         break;
       case 'L':
       case 'R':
-        var turn_by = value ~/ 90;
-        dir += ((inst == 'R') ? turn_by : -turn_by);
+        var turnBy = value ~/ 90;
+        dir += ((inst == 'R') ? turnBy : -turnBy);
         dir %= 4;
         break;
       case 'F':
@@ -560,12 +562,12 @@ void day12() async {
         break;
     }
   }
-  var manhattan_distance_1 = x.abs() + y.abs();
-  print('Part 1: ${manhattan_distance_1}');
+  var manhattanDistanceP1 = x.abs() + y.abs();
+  print('Part 1: ${manhattanDistanceP1}');
   x = 0;
   y = 0;
-  var w_x = 10;
-  var w_y = 1;
+  var waypointX = 10;
+  var waypointY = 1;
   for (var line in input) {
     var inst = line[0];
     var value = int.parse(line.substring(1));
@@ -575,41 +577,46 @@ void day12() async {
       case 'W':
       case 'N':
         var move = movs[inst];
-        w_x += (move[0] * value);
-        w_y += (move[1] * value);
+        waypointX += (move[0] * value);
+        waypointY += (move[1] * value);
         break;
       case 'L':
       case 'R':
-        var d_value = value * pi / 180;
+        var dValue = value * pi / 180;
         if (inst == 'R') {
-          d_value = -d_value;
+          dValue = -dValue;
         }
-        var old_x = w_x;
-        w_x = cos(d_value).round() * w_x - sin(d_value).round() * w_y;
-        w_y = sin(d_value).round() * old_x + cos(d_value).round() * w_y;
+        var oldX = waypointX;
+        waypointX =
+            cos(dValue).round() * waypointX - sin(dValue).round() * waypointY;
+        waypointY =
+            sin(dValue).round() * oldX + cos(dValue).round() * waypointY;
         break;
       case 'F':
-        x += (w_x * value);
-        y += (w_y * value);
+        x += (waypointX * value);
+        y += (waypointY * value);
         break;
     }
   }
-  var manhattan_distance_2 = x.abs() + y.abs();
-  print('Part 2: ${manhattan_distance_2}');
+  var manhattanDistanceP2 = x.abs() + y.abs();
+  print('Part 2: ${manhattanDistanceP2}');
 }
 
 void day13() async {
   final input = await aoc2020.loadInput(13);
-  final earliest_ts = int.parse(input[0]);
+  final earliestTimestamp = int.parse(input[0]);
   final busses = input[1]
       .split(',')
       .where((bus) => bus != 'x')
       .map((bus) => int.parse(bus));
   final res = busses
-      .map((time) => [((earliest_ts / time).ceil() * time) - earliest_ts, time])
+      .map((time) => [
+            ((earliestTimestamp / time).ceil() * time) - earliestTimestamp,
+            time
+          ])
       .reduce((curr, next) => curr[0] < next[0] ? curr : next);
   print('Part 1: ${res[0] * res[1]}');
-  final idx_and_busses = input[1]
+  final idxAndBusses = input[1]
       .split(',')
       .asMap()
       .entries
@@ -618,17 +625,17 @@ void day13() async {
       .map((bus) => [bus[0], int.parse(bus[1])]);
   var t = 0;
   var increment = busses.toList()[0];
-  idx_and_busses.forEach((idx_and_bus) {
-    var idx = idx_and_bus[0];
-    var bus_id = idx_and_bus[1];
+  idxAndBusses.forEach((idxAndBus) {
+    var idx = idxAndBus[0];
+    var busId = idxAndBus[1];
     var loop = true;
     while (loop) {
       t += increment;
-      if ((t + idx) % bus_id == 0) {
+      if ((t + idx) % busId == 0) {
         loop = false;
       }
     }
-    increment = numerics.leastCommonMultiple(increment, bus_id);
+    increment = numerics.leastCommonMultiple(increment, busId);
   });
 
   print('Part 2: ${t}');
@@ -642,12 +649,12 @@ void day14() async {
   }
 
   final input = await aoc2020.loadInput(14);
-  var mem1 = {};
-  var mem2 = {};
-  var curr_mask = '';
+  final mem1 = {};
+  final mem2 = {};
+  var currMask = '';
   for (var line in input) {
     if (line.startsWith('mask')) {
-      curr_mask = line.split('=')[1];
+      currMask = line.split('=')[1];
     } else {
       var matches =
           RegExp(r'mem[\[](\d+)[\]]\s=\s(\d+)').allMatches(line).elementAt(0);
@@ -655,37 +662,35 @@ void day14() async {
       var val = BigInt.parse(matches.group(2));
 
       // Part 1.
-      var or_mask = BigInt.parse(curr_mask.replaceAll('X', '0'), radix: 2);
-      var and_mask = BigInt.parse(curr_mask.replaceAll('X', '1'), radix: 2);
-      mem1[idx] = (val & and_mask) | or_mask;
+      var orMask = BigInt.parse(currMask.replaceAll('X', '0'), radix: 2);
+      var andMask = BigInt.parse(currMask.replaceAll('X', '1'), radix: 2);
+      mem1[idx] = (val & andMask) | orMask;
 
       // Part 2.
 
-      var idxs_of_xs = quiver
-          .enumerate(curr_mask.split(''))
-          .where((idx_val) => idx_val.value == 'X')
-          .map((idx_val) => idx_val.index)
+      final idxsOfXs = quiver
+          .enumerate(currMask.split(''))
+          .where((idxVal) => idxVal.value == 'X')
+          .map((idxVal) => idxVal.index)
           .toList();
 
-      var merge_mask =
-          (BigInt.parse(curr_mask.replaceAll('X', '0'), radix: 2) | idx)
+      final mergeMask =
+          (BigInt.parse(currMask.replaceAll('X', '0'), radix: 2) | idx)
               .toRadixString(2)
-              .padLeft(curr_mask.length, '0');
-      var possible_masks = [merge_mask];
+              .padLeft(currMask.length, '0');
+      var possibleMasks = [mergeMask];
 
-      for (var i = 0; i < idxs_of_xs.length; i++) {
-        var new_possible_masks = <String>[];
-        for (var possible_mask in possible_masks) {
-          new_possible_masks
-              .add(replaceCharAt(possible_mask, idxs_of_xs[i], '1'));
-          new_possible_masks
-              .add(replaceCharAt(possible_mask, idxs_of_xs[i], '0'));
+      for (var i = 0; i < idxsOfXs.length; i++) {
+        var newPossibleMasks = <String>[];
+        for (var possibleMask in possibleMasks) {
+          newPossibleMasks.add(replaceCharAt(possibleMask, idxsOfXs[i], '1'));
+          newPossibleMasks.add(replaceCharAt(possibleMask, idxsOfXs[i], '0'));
         }
-        possible_masks = new_possible_masks;
+        possibleMasks = newPossibleMasks;
       }
-      for (var possible_mask in possible_masks) {
-        var idx_to_use = BigInt.parse(possible_mask, radix: 2);
-        mem2[idx_to_use] = val;
+      for (var possibleMask in possibleMasks) {
+        var idxToUse = BigInt.parse(possibleMask, radix: 2);
+        mem2[idxToUse] = val;
       }
     }
   }
@@ -733,10 +738,11 @@ void day15() async {
 void day16() async {
   final input = await aoc2020.loadInput(16);
   var section = 0;
-  var error_rate = 0;
-  var rules = {};
-  var your_ticket = [];
-  var valid_tickets = [];
+  var errorRate = 0;
+  final rules = {};
+  final validTickets = [];
+  var yourTicket = [];
+
   for (var line in input) {
     if (line.isEmpty) {
       section += 1;
@@ -749,8 +755,8 @@ void day16() async {
       var matches = RegExp(r'(.+):\s(\d+)-(\d+)\sor\s(\d+)-(\d+)')
           .allMatches(line)
           .elementAt(0);
-      var field_name = matches.group(1);
-      rules[field_name] = [
+      var fieldName = matches.group(1);
+      rules[fieldName] = [
         int.parse(matches.group(2)),
         int.parse(matches.group(3)),
         int.parse(matches.group(4)),
@@ -758,7 +764,7 @@ void day16() async {
       ];
     }
     if (section == 1) {
-      your_ticket = line.split(',').map((val) => int.parse(val)).toList();
+      yourTicket = line.split(',').map((val) => int.parse(val)).toList();
       continue;
     }
     if (section == 2) {
@@ -770,51 +776,51 @@ void day16() async {
       }
 
       var values = line.split(',').map((val) => int.parse(val));
-      var is_error_present = values.any((n) => !isValid(n));
+      var isErrorPresent = values.any((n) => !isValid(n));
 
-      if (is_error_present) {
-        error_rate += values.where((n) => !isValid(n)).fold(0, (a, b) => a + b);
+      if (isErrorPresent) {
+        errorRate += values.where((n) => !isValid(n)).fold(0, (a, b) => a + b);
       } else {
-        valid_tickets.add(values.toList());
+        validTickets.add(values.toList());
       }
     }
   }
-  print('Part 1: ${error_rate}');
+  print('Part 1: ${errorRate}');
 
-  var found_rules = List(your_ticket.length);
-  for (var c_idx = 0; c_idx < valid_tickets[0].length; c_idx++) {
-    var valid_rules = [];
-    var need_to_satisfy = valid_tickets.map((values) => values[c_idx]);
+  var foundRules = List(yourTicket.length);
+  for (var cIdx = 0; cIdx < validTickets[0].length; cIdx++) {
+    final validRules = [];
+    final needToSatisfy = validTickets.map((values) => values[cIdx]);
     for (var rule in rules.keys) {
-      var rule_range = rules[rule];
-      var all_satisfy = need_to_satisfy.every((n) =>
-          ((n >= rule_range[0] && n <= rule_range[1]) ||
-              (n >= rule_range[2] && n <= rule_range[3])));
-      if (all_satisfy) {
-        valid_rules.add(rule);
+      final ruleRange = rules[rule];
+      final allSatisfy = needToSatisfy.every((n) =>
+          ((n >= ruleRange[0] && n <= ruleRange[1]) ||
+              (n >= ruleRange[2] && n <= ruleRange[3])));
+      if (allSatisfy) {
+        validRules.add(rule);
       }
     }
-    found_rules[c_idx] = valid_rules;
+    foundRules[cIdx] = validRules;
   }
 
-  var all_found = false;
-  var matched_rules = <dynamic>{};
-  while (!all_found) {
-    for (var i = 0; i < found_rules.length; i++) {
-      if (found_rules[i].length == 1) {
-        matched_rules.add(found_rules[i][0]);
+  var allFound = false;
+  final matchedRules = <dynamic>{};
+  while (!allFound) {
+    for (var i = 0; i < foundRules.length; i++) {
+      if (foundRules[i].length == 1) {
+        matchedRules.add(foundRules[i][0]);
       } else {
-        found_rules[i] =
-            found_rules[i].where((el) => !matched_rules.contains(el)).toList();
+        foundRules[i] =
+            foundRules[i].where((el) => !matchedRules.contains(el)).toList();
       }
     }
-    all_found = found_rules.every((el) => el.length == 1);
+    allFound = foundRules.every((el) => el.length == 1);
   }
 
   var mul = 1;
-  for (var idx = 0; idx < found_rules.length; idx++) {
-    if (found_rules[idx][0].startsWith('departure')) {
-      mul *= your_ticket[idx];
+  for (var idx = 0; idx < foundRules.length; idx++) {
+    if (foundRules[idx][0].startsWith('departure')) {
+      mul *= yourTicket[idx];
     }
   }
 
@@ -923,11 +929,11 @@ void day17() async {
 }
 
 int parseNext(List<String> l, int part) {
-  var el = l.removeLast();
+  final el = l.removeLast();
   if (int.tryParse(el) != null) {
     return int.parse(el);
   } else if (el == '(') {
-    var val = calc(l, part);
+    final val = calc(l, part);
     l.removeLast(); // Remove ')'
     return val;
   }
@@ -938,7 +944,7 @@ int parseNext(List<String> l, int part) {
 int calc(List<String> l, int part) {
   var val = parseNext(l, part);
   while (l.isNotEmpty && l.last != ')') {
-    var el = l.removeLast();
+    final el = l.removeLast();
     switch (el) {
       case '*':
         if (part == 1) {
@@ -957,13 +963,13 @@ int calc(List<String> l, int part) {
 
 void day18() async {
   final input = await aoc2020.loadInput(18);
-  var sum1 = input
+  final sum1 = input
       .map((line) =>
           calc(line.split('').reversed.where((c) => c != ' ').toList(), 1))
       .reduce((a, b) => a + b);
   print('Part 1: ${sum1}');
 
-  var sum2 = input
+  final sum2 = input
       .map((line) =>
           calc(line.split('').reversed.where((c) => c != ' ').toList(), 2))
       .reduce((a, b) => a + b);
@@ -972,15 +978,15 @@ void day18() async {
 
 void day19() async {
   final input = await aoc2020.loadInput(19);
-  var is_rules_part = true;
-  var rules = <int, dynamic>{};
-  var messages = [];
+  var isRulesPart = true;
+  final rules = <int, dynamic>{};
+  final messages = [];
   for (var line in input) {
     if (line.isEmpty) {
-      is_rules_part = false;
+      isRulesPart = false;
       continue;
     }
-    if (is_rules_part) {
+    if (isRulesPart) {
       var split = line.split(':');
       var n = int.parse(split[0]);
       var sp = split[1].trim();
@@ -1003,7 +1009,7 @@ void day19() async {
     }
   }
   final ROOT_RULE = 0;
-  var cache = {};
+  final cache = {};
 
   String buildRegex(Map<int, dynamic> rules, int rule, int p) {
     if (!(rules.containsKey(rule))) {
@@ -1013,24 +1019,24 @@ void day19() async {
       return '(${buildRegex(rules, 42, 1)}+)';
     }
     if (p == 2 && rule == 11) {
-      var part_reg = '(';
+      var regExpBuilder = '(';
       var a = buildRegex(rules, 42, 1);
       var b = buildRegex(rules, 31, 1);
       for (var i = 1; i < 10; i++) {
         if (i > 1) {
-          part_reg += '|';
+          regExpBuilder += '|';
         }
-        part_reg += '(';
+        regExpBuilder += '(';
         for (var j = 0; j < i; j++) {
-          part_reg += a;
+          regExpBuilder += a;
         }
         for (var j = 0; j < i; j++) {
-          part_reg += b;
+          regExpBuilder += b;
         }
-        part_reg += ')';
+        regExpBuilder += ')';
       }
-      part_reg += ')';
-      return part_reg;
+      regExpBuilder += ')';
+      return regExpBuilder;
     }
     if (cache.containsKey(rule)) {
       return cache[rule];
@@ -1054,12 +1060,12 @@ void day19() async {
     return cache[rule];
   }
 
-  cache = {};
-  var r1 = buildRegex(rules, ROOT_RULE, 1);
-  var regex1 = RegExp(r1);
+  cache.clear();
+  final r1 = buildRegex(rules, ROOT_RULE, 1);
+  final regex1 = RegExp(r1);
   print('Part 1: ${messages.where((m) => regex1.stringMatch(m) == m).length}');
 
-  cache = {};
+  cache.clear();
 
   // Used Python. Dart Regexp seemed to be too slow. https://github.com/dart-lang/sdk/issues/9360
   // var r2 = buildRegex(rules, ROOT_RULE, 2);
@@ -1078,35 +1084,35 @@ void day20() async {
   }
 
   List<String> convMap(List<String> l) {
-    var r = l.length;
-    var c = l[0].length;
-    var top = l[0];
-    var bottom = l[c - 1];
-    var side_l = '';
-    var side_r = '';
+    final r = l.length;
+    final c = l[0].length;
+    final top = l[0];
+    final bottom = l[c - 1];
+    var sideLeft = '';
+    var sideRight = '';
     for (var idx = 0; idx < r; idx++) {
-      side_l += l[idx][0];
-      side_r += l[idx][c - 1];
+      sideLeft += l[idx][0];
+      sideRight += l[idx][c - 1];
     }
-    return [top, bottom, side_l, side_r];
+    return [top, bottom, sideLeft, sideRight];
   }
 
   final input = await aoc2020.loadInput(20);
-  var puzzle = <String, List<String>>{};
-  var curr_id = '';
+  final puzzle = <String, List<String>>{};
+  var currId = '';
   for (var line in input) {
     if (line.isEmpty) {
       continue;
     }
     if (line.startsWith('Tile')) {
-      curr_id = RegExp(r'\s(\d+):').allMatches(line).elementAt(0).group(1);
-      puzzle[curr_id] = [];
+      currId = RegExp(r'\s(\d+):').allMatches(line).elementAt(0).group(1);
+      puzzle[currId] = [];
     } else {
-      puzzle[curr_id].add(line);
+      puzzle[currId].add(line);
     }
   }
-  var cnt = {};
-  var unique = {};
+  final cnt = {};
+  final unique = {};
   for (var tile in puzzle.keys) {
     for (var n in convMap(puzzle[tile])) {
       cnt.putIfAbsent(convToNum(n), () => []).add(tile);
@@ -1115,7 +1121,7 @@ void day20() async {
   }
   for (var key in cnt.keys) {
     if (cnt[key].length == 1) {
-      var tile = cnt[key][0];
+      final tile = cnt[key][0];
       if (unique.containsKey(tile)) {
         unique[tile] += 1;
       } else {
@@ -1141,8 +1147,8 @@ void day20() async {
 void day21() async {
   final input = await aoc2020.loadInput(21);
   var ingredients = <String>{};
-  var ingredientsCount = {};
-  var alergensToIngredients = <String, Set>{};
+  final ingredientsCount = {};
+  final alergensToIngredients = <String, Set>{};
   for (var dish in input) {
     final parts =
         dish.replaceAll('(', '').replaceAll(')', '').split('contains');
@@ -1185,7 +1191,7 @@ void day21() async {
     allFound = true;
     for (var alerg in alergensToIngredients.keys) {
       if (alergensToIngredients[alerg].length == 1) {
-        var ing = alergensToIngredients[alerg].single;
+        final ing = alergensToIngredients[alerg].single;
         found[ing] = alerg;
       } else {
         allFound = false;
@@ -1195,10 +1201,10 @@ void day21() async {
       }
     }
   }
-  var inv_found = found.map((k, v) => MapEntry(v, k));
+  var alergToIngredient = found.map((k, v) => MapEntry(v, k));
   var res = '';
-  for (var ing in inv_found.keys.toList()..sort()) {
-    res += ',${inv_found[ing]}';
+  for (var ing in alergToIngredient.keys.toList()..sort()) {
+    res += ',${alergToIngredient[ing]}';
   }
 
   print('Part 2: ${res.substring(1)}');
@@ -1217,8 +1223,8 @@ void day22() async {
 
   final input = await aoc2020.loadInput(22);
   var p = 1;
-  var p1card = [];
-  var p2card = [];
+  final p1card = [];
+  final p2card = [];
   for (var line in input) {
     if (line.contains('Player')) {
       continue;
@@ -1234,8 +1240,8 @@ void day22() async {
     }
   }
   // Game 1
-  var p1 = [...p1card];
-  var p2 = [...p2card];
+  final p1 = [...p1card];
+  final p2 = [...p2card];
   while (p1.isNotEmpty && p2.isNotEmpty) {
     var p1card = p1.removeAt(0);
     var p2card = p2.removeAt(0);
@@ -1245,10 +1251,10 @@ void day22() async {
       p2.addAll([p2card, p1card]);
     }
   }
-  var non_empty_pile = p1.isEmpty ? p2 : p1;
+  var nonEmptyPile = p1.isEmpty ? p2 : p1;
 
-  print('Part 1: ${calculateScore(non_empty_pile)}');
-  var last_winner_deck = [];
+  print('Part 1: ${calculateScore(nonEmptyPile)}');
+  var lastWinnerDeck = [];
 
   int recursiveCombat(cp1, cp2) {
     var cache = <String>{};
@@ -1260,8 +1266,8 @@ void day22() async {
         cache.add(key);
       }
 
-      var p1card = cp1.removeAt(0);
-      var p2card = cp2.removeAt(0);
+      final p1card = cp1.removeAt(0);
+      final p2card = cp2.removeAt(0);
 
       if (p1card <= cp1.length && p2card <= cp2.length) {
         var winner =
@@ -1279,13 +1285,13 @@ void day22() async {
         }
       }
     }
-    last_winner_deck = cp1.isEmpty ? cp2 : cp1;
+    lastWinnerDeck = cp1.isEmpty ? cp2 : cp1;
     return cp1.isEmpty ? 2 : 1;
   }
 
   // Game 2
   recursiveCombat(p1card, p2card);
-  print('Part 2: ${calculateScore(last_winner_deck)}');
+  print('Part 2: ${calculateScore(lastWinnerDeck)}');
 }
 
 class Node {
@@ -1297,7 +1303,7 @@ class Node {
 
 void day23() async {
   String getList(Node c, {int highlight = -1}) {
-    var until = c.val;
+    final until = c.val;
     var res = '';
     while (c.next.val != until) {
       if (c.val == highlight) {
@@ -1318,54 +1324,54 @@ void day23() async {
   final input = await aoc2020.loadInput(23);
   var cups = input[0].split('').map((n) => int.parse(n)).toList();
 
-  Map<int, Node> solveCups(List<int> cups, int n_moves) {
-    var max_val = cups.reduce(max);
-    var min_val = cups.reduce(min);
+  Map<int, Node> solveCups(List<int> cups, int nMoves) {
+    final maxValue = cups.reduce(max);
+    final minValue = cups.reduce(min);
 
-    var idx_node = <int, Node>{};
-    for (var idx = 1; idx < n_moves + 1; idx++) {
-      idx_node[idx] = Node(idx);
+    final idxToNode = <int, Node>{};
+    for (var idx = 1; idx < nMoves + 1; idx++) {
+      idxToNode[idx] = Node(idx);
     }
 
     for (var idx = 0; idx < cups.length; idx++) {
-      idx_node[cups[idx]].next = idx_node[cups[(idx + 1) % cups.length]];
+      idxToNode[cups[idx]].next = idxToNode[cups[(idx + 1) % cups.length]];
     }
-    var curr = idx_node[cups[0]];
-    for (var step = 0; step < n_moves; step++) {
-      var curr_value = curr.val;
+    var curr = idxToNode[cups[0]];
+    for (var step = 0; step < nMoves; step++) {
+      var currentValue = curr.val;
 
-      var move_cups = [curr.next, curr.next.next, curr.next.next.next];
-      var move_cups_val = move_cups.map((cup) => cup.val).toList();
+      final cupsToMove = [curr.next, curr.next.next, curr.next.next.next];
+      final cupsToMoveValues = cupsToMove.map((cup) => cup.val).toList();
 
       // Remove the next 3 by pointing the next to the 4th.
       curr.next = curr.next.next.next.next;
 
-      var candidate_next = curr_value - 1;
-      if (candidate_next < min_val) {
-        candidate_next = max_val;
+      var candidateNext = currentValue - 1;
+      if (candidateNext < minValue) {
+        candidateNext = maxValue;
       }
-      while (move_cups_val.contains(candidate_next)) {
-        candidate_next -= 1;
-        if (candidate_next < min_val) {
-          candidate_next = max_val;
+      while (cupsToMoveValues.contains(candidateNext)) {
+        candidateNext -= 1;
+        if (candidateNext < minValue) {
+          candidateNext = maxValue;
         }
       }
 
-      var next = idx_node[candidate_next];
-      var next_next = next.next;
-      next.next = move_cups[0];
-      move_cups[2].next = next_next;
+      var next = idxToNode[candidateNext];
+      var nextNext = next.next;
+      next.next = cupsToMove[0];
+      cupsToMove[2].next = nextNext;
 
       curr = curr.next;
     }
-    return idx_node;
+    return idxToNode;
   }
 
   var p1 = solveCups(cups, 100);
   print('Part 1: ${getList(p1[1])}');
 
-  var max_cup = cups.reduce(max);
-  cups = cups + List<int>.generate(1000000 - max_cup, (i) => i + max_cup + 1);
+  final maxCup = cups.reduce(max);
+  cups = cups + List<int>.generate(1000000 - maxCup, (i) => i + maxCup + 1);
 
   var p2 = solveCups(cups, 10000000);
   print('Part 2: ${p2[1].next.val * p2[1].next.next.val}');
@@ -1488,5 +1494,5 @@ void day25() async {
 }
 
 void main(List<String> arguments) async {
-  await day17();
+  await day8();
 }
