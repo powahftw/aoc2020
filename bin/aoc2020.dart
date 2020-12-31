@@ -1494,5 +1494,28 @@ void day25() async {
 }
 
 void main(List<String> arguments) async {
+  await day1();
+  await day2();
+  await day3();
+  await day4();
+  await day5();
+  await day6();
+  await day7();
   await day8();
+  await day9();
+  await day10();
+  await day11();
+  await day12();
+  await day13();
+  await day14();
+  await day15();
+  await day16();
+  await day17();
+  await day18();
+  await day19();
+  await day20();
+  await day21();
+  await day22();
+  await day23();
+  await day24();
 }
