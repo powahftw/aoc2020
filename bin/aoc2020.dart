@@ -178,30 +178,9 @@ void day4() async {
 }
 
 int calculateSeatId(String bsp) {
-  final rowsPart = bsp.substring(0, 7);
-  final columnPart = bsp.substring(bsp.length - 3);
-  var l = 0, r = 127;
-  for (var i = 0; i < rowsPart.length; i++) {
-    var middle = (r - l + 1) ~/ 2;
-    if (rowsPart[i] == 'F') {
-      r -= middle;
-    } else {
-      l += middle;
-    }
-  }
-  var row = l;
-  l = 0;
-  r = 7;
-  for (var i = 0; i < columnPart.length; i++) {
-    var middle = (r - l + 1) ~/ 2;
-    if (columnPart[i] == 'L') {
-      r -= middle;
-    } else {
-      l += middle;
-    }
-  }
-  var column = l;
-  return row * 8 + column;
+  final bin =
+      bsp.replaceAll(RegExp(r'F|L'), '0').replaceAll(RegExp(r'B|R'), '1');
+  return int.parse(bin, radix: 2);
 }
 
 void day5() async {
@@ -210,13 +189,8 @@ void day5() async {
   final minId = seatIds.reduce(min);
   final maxId = seatIds.reduce(max);
   final seen = seatIds.toSet();
-  var missing;
-  for (var i = minId; i < maxId; i++) {
-    if (!(seen.contains(i))) {
-      missing = i;
-      break;
-    }
-  }
+  final expected = List<int>.generate(maxId - minId, (i) => i + minId);
+  final missing = expected.firstWhere((n) => !seen.contains(n));
   print('Part 1: ${maxId}');
   print('Part 2: ${missing}');
 }
